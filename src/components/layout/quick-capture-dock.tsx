@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, X, CornerDownLeft, Sparkles, Check, AlertCircle } from "lucide-react";
+import { Plus, X, CornerDownLeft } from "lucide-react";
 import { useWorkbenchStore } from "@/stores/use-workbench-store";
 import { cn } from "@/lib/utils/cn";
 import { toast } from "sonner";
@@ -58,7 +58,6 @@ export function QuickCaptureDock() {
 
     setIsSubmitting(true);
     try {
-      // Simulate quick capture save (Phase 4 backend API integration will wire this up)
       toast.success("Journal note recorded to career memory!");
       setContent("");
       setQuickCaptureOpen(false);
@@ -75,7 +74,7 @@ export function QuickCaptureDock() {
         <button
           type="button"
           onClick={() => setQuickCaptureOpen(true)}
-          className="flex items-center gap-3 rounded-full border border-[#252A28] bg-[#121515]/90 px-4 py-2 text-xs text-[#A3AAA5] shadow-xl backdrop-blur-md hover:border-[#91AD9D]/40 hover:text-[#F1F0EA] transition-all"
+          className="flex items-center gap-3 rounded-full border border-[#252A28] bg-[#121515] px-4 py-2 text-xs text-[#A3AAA5] shadow-xl hover:border-[#91AD9D]/40 hover:text-[#F1F0EA] transition-colors"
         >
           <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#91AD9D]/15 text-[#91AD9D]">
             <Plus className="h-3.5 w-3.5" />
@@ -90,8 +89,8 @@ export function QuickCaptureDock() {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 p-4 flex justify-center bg-gradient-to-t from-[#0D0F0F] via-[#0D0F0F]/80 to-transparent">
-      <div className="w-full max-w-xl rounded-xl border border-[#252A28] bg-[#121515] p-3 shadow-2xl backdrop-blur-xl">
+    <div className="fixed inset-x-0 bottom-0 z-40 p-4 flex justify-center bg-[#0D0F0F]/80 backdrop-blur-sm">
+      <div className="w-full max-w-xl rounded-xl border border-[#252A28] bg-[#121515] p-3 shadow-2xl">
         <form onSubmit={handleSubmit} className="space-y-3">
           {/* Top Control Bar */}
           <div className="flex items-center justify-between border-b border-[#252A28] pb-2">
@@ -104,7 +103,7 @@ export function QuickCaptureDock() {
                     type="button"
                     onClick={() => setKind(k.id)}
                     className={cn(
-                      "px-2 py-0.5 rounded text-[11px] font-medium transition",
+                      "px-2.5 py-1 rounded text-[11px] font-medium transition-colors",
                       kind === k.id
                         ? "bg-[#91AD9D]/15 text-[#91AD9D] border border-[#91AD9D]/30"
                         : "text-[#737A76] hover:text-[#A3AAA5] hover:bg-[#171A19]"
@@ -135,11 +134,11 @@ export function QuickCaptureDock() {
           />
 
           {/* Action Row */}
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center justify-between pt-1 border-t border-[#252A28]">
             <select
               value={project}
               onChange={(e) => setProject(e.target.value)}
-              className="bg-[#171A19] border border-[#252A28] text-[11px] font-mono text-[#A3AAA5] rounded px-2 py-1 focus:outline-none"
+              className="bg-[#171A19] border border-[#252A28] text-[11px] font-mono text-[#A3AAA5] rounded px-2.5 py-1 focus:outline-none"
             >
               <option value="general">General / No Project</option>
               <option value="devtrail">DevTrail Web</option>
@@ -149,16 +148,16 @@ export function QuickCaptureDock() {
               <button
                 type="button"
                 onClick={() => setQuickCaptureOpen(false)}
-                className="px-3 py-1 text-xs text-[#737A76] hover:text-[#F1F0EA]"
+                className="px-3 py-1 text-xs text-[#737A76] hover:text-[#F1F0EA] transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!content.trim() || isSubmitting}
-                className="flex items-center gap-1.5 rounded bg-[#91AD9D] px-3 py-1 text-xs font-medium text-[#0D0F0F] hover:bg-[#B1CCBC] disabled:opacity-50 transition"
+                className="flex items-center gap-1.5 rounded bg-[#91AD9D] px-3.5 py-1.5 text-xs font-semibold text-[#0D0F0F] hover:bg-[#B1CCBC] disabled:opacity-50 transition-colors"
               >
-                <span>Save</span>
+                <span>Save Note</span>
                 <CornerDownLeft className="h-3 w-3" />
               </button>
             </div>

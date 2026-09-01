@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, LogOut, User as UserIcon, Sparkles } from "lucide-react";
+import { Search, LogOut, User as UserIcon, Plus } from "lucide-react";
 import { logout } from "@/features/auth/api/logout";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { track } from "@/lib/analytics/analytics";
@@ -40,7 +40,7 @@ export function UserMenu() {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex h-7 w-7 items-center justify-center rounded-full bg-[#171A19] border border-[#252A28] text-[11px] font-mono font-medium text-[#F1F0EA] hover:border-[#91AD9D]/40 transition focus:outline-none"
+        className="flex h-7 w-7 items-center justify-center rounded-full bg-[#171A19] border border-[#252A28] text-[11px] font-mono font-medium text-[#F1F0EA] hover:border-[#91AD9D]/50 transition-colors focus:outline-none"
       >
         {initials}
       </button>
@@ -55,7 +55,7 @@ export function UserMenu() {
           <div
             role="menu"
             aria-label="User menu"
-            className="absolute right-0 z-50 mt-2 w-52 rounded-md border border-[#252A28] bg-[#121515] py-1 shadow-2xl"
+            className="absolute right-0 z-50 mt-2 w-52 rounded-md border border-[#252A28] bg-[#121515] py-1 shadow-xl"
           >
             <div className="border-b border-[#252A28] px-3 py-2">
               <p className="truncate text-xs font-medium text-[#F1F0EA]">{displayName}</p>
@@ -107,20 +107,20 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[#252A28] bg-[#0D0F0F]/90 px-4 md:px-6 backdrop-blur-md">
-      {/* Restrained Context Bar / Breadcrumbs */}
-      <div className="flex items-center gap-2 text-xs font-mono text-[#737A76]">
-        <span>DevTrail</span>
+      {/* Restrained Context Bar / Breadcrumb */}
+      <div className="flex items-center gap-2 text-xs text-[#737A76]">
+        <span className="font-mono text-[11px]">DevTrail</span>
         <span>/</span>
-        <span className="text-[#F1F0EA] font-sans font-medium">{sectionTitle}</span>
+        <span className="text-[#F1F0EA] font-medium">{sectionTitle}</span>
       </div>
 
       {/* Action Buttons & Navigation Triggers */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {/* Command Palette Trigger */}
         <button
           type="button"
           onClick={() => setCommandPaletteOpen(true)}
-          className="flex items-center gap-2 rounded-md border border-[#252A28] bg-[#121515] px-2.5 py-1 text-xs text-[#A3AAA5] hover:bg-[#1B1F1E] hover:text-[#F1F0EA] transition"
+          className="flex items-center gap-2 rounded-md border border-[#252A28] bg-[#121515] px-2.5 py-1 text-xs text-[#A3AAA5] hover:bg-[#1B1F1E] hover:text-[#F1F0EA] transition-colors"
         >
           <Search className="h-3.5 w-3.5 text-[#737A76]" />
           <span className="hidden sm:inline">Search / Commands</span>
@@ -129,19 +129,19 @@ export function AppHeader() {
           </kbd>
         </button>
 
-        {/* Generate Summary Action Trigger */}
+        {/* Quick Capture Button */}
         <button
           type="button"
           onClick={() => setQuickCaptureOpen(true)}
-          className="hidden md:flex items-center gap-1.5 rounded-md border border-[#91AD9D]/30 bg-[#91AD9D]/10 px-2.5 py-1 text-xs font-medium text-[#91AD9D] hover:bg-[#91AD9D]/20 transition"
+          className="hidden md:flex items-center gap-1.5 rounded-md border border-[#91AD9D]/30 bg-[#91AD9D]/10 px-2.5 py-1 text-xs font-medium text-[#91AD9D] hover:bg-[#91AD9D]/20 transition-colors"
         >
-          <Sparkles className="h-3.5 w-3.5" />
+          <Plus className="h-3.5 w-3.5 text-[#91AD9D]" />
           <span>Quick Capture</span>
         </button>
 
         <div className="h-4 w-[1px] bg-[#252A28]" />
 
-        {/* User Account Dropdown */}
+        {/* User Menu */}
         <UserMenu />
       </div>
     </header>

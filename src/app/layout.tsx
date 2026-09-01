@@ -1,14 +1,27 @@
 import type { Metadata } from "next";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { AppProviders } from "@/providers/app-providers";
 import { APP_NAME } from "@/lib/config/constants";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
     default: APP_NAME,
     template: `%s | ${APP_NAME}`,
   },
-  description: "Next.js Production Web Starter",
+  description: "DevTrail - Career Memory & Proof of Work for Developers",
 };
 
 export default function RootLayout({
@@ -17,8 +30,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className="antialiased selection:bg-indigo-500 selection:text-white">
+    <html lang="en" className={`dark ${inter.variable} ${mono.variable}`}>
+      <body className="font-sans antialiased text-[#F1F0EA] bg-[#0D0F0F] selection:bg-[#91AD9D]/30 selection:text-[#F1F0EA]">
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

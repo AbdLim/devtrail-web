@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth/session";
-import { Calendar, Sparkles, GitCommit, GitPullRequest, Bookmark, Plus } from "lucide-react";
+import { Calendar, Sparkles, GitBranch, ArrowRight, Zap } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {
@@ -19,33 +19,36 @@ export default async function TodayPage() {
   });
 
   return (
-    <div className="space-y-8">
-      {/* Date & Quiet Greeting */}
+    <div className="space-y-6">
+      {/* Date & Quiet Greeting Header */}
       <div className="space-y-1 border-b border-[#252A28] pb-4">
         <p className="text-xs font-mono text-[#737A76] uppercase tracking-wider">{todayDate}</p>
         <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-[#F1F0EA]">
           Good day, {displayName}
         </h1>
+        <p className="text-xs text-[#A3AAA5]">
+          Your engineering activity river and personal proof-of-work workbench.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Canvas: Activity River & Timeline */}
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Main Activity River Stream */}
+        <div className="lg:col-span-2 space-y-5">
           <div className="rounded-lg border border-[#252A28] bg-[#121515] p-5 space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-[#252A28] pb-3">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-[#91AD9D]" />
-                <h2 className="text-sm font-medium text-[#F1F0EA]">Today's Activity River</h2>
+                <h2 className="text-xs font-semibold text-[#F1F0EA]">Today's Activity River</h2>
               </div>
-              <span className="text-[11px] font-mono text-[#737A76]">Live Metadata Feed</span>
+              <span className="text-[10px] font-mono text-[#737A76]">Live Feed</span>
             </div>
 
-            {/* Quiet Stream Items / Empty state guide */}
-            <div className="space-y-3 pt-2">
-              <div className="p-4 rounded-md border border-[#252A28] bg-[#0D0F0F] space-y-2">
+            {/* Stream Timeline Items */}
+            <div className="space-y-3 pt-1">
+              <div className="p-4 rounded-md border border-[#252A28] bg-[#0D0F0F] space-y-2 hover:border-[#323835] transition-colors">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] text-[#91AD9D] bg-[#91AD9D]/15 px-1.5 py-0.5 rounded border border-[#91AD9D]/30">
+                    <span className="font-mono text-[10px] text-[#91AD9D] bg-[#91AD9D]/10 px-1.5 py-0.5 rounded border border-[#91AD9D]/20 font-medium">
                       Phase 1 & 2
                     </span>
                     <span className="text-[#F1F0EA] font-medium">Quiet Workbench Initialized</span>
@@ -53,41 +56,50 @@ export default async function TodayPage() {
                   <span className="font-mono text-[11px] text-[#737A76]">Just now</span>
                 </div>
                 <p className="text-xs text-[#A3AAA5] leading-relaxed">
-                  Design tokens, layout frame (Left Rail, Context Bar, Inspector Drawer, Quick Capture Dock, Command Palette), and Phase 1/2 REST API identity flows are ready.
+                  Design tokens, layout frame (Left Rail, Context Bar, Inspector Drawer, Quick Capture Dock, Command Palette), and Phase 1 & 2 REST API identity flows are ready.
                 </p>
               </div>
 
-              <div className="p-4 rounded-md border border-dashed border-[#252A28] bg-[#0D0F0F]/50 text-center py-6 space-y-2">
-                <p className="text-xs text-[#A3AAA5]">Connect your GitHub repositories in Phase 3 to start recording automated work evidence.</p>
+              <div className="p-5 rounded-md border border-dashed border-[#252A28] bg-[#0D0F0F]/50 text-center space-y-3">
+                <div className="space-y-1">
+                  <h3 className="text-xs font-medium text-[#F1F0EA]">Connect GitHub Repositories</h3>
+                  <p className="text-xs text-[#737A76] max-w-sm mx-auto">
+                    Track automatic commit metadata, pull requests, and releases to build your verified career memory.
+                  </p>
+                </div>
                 <Link
                   href="/settings/integrations"
-                  className="inline-flex items-center gap-1.5 text-xs text-[#91AD9D] hover:underline font-mono"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0D0F0F] bg-[#91AD9D] px-3.5 py-1.5 rounded-md hover:bg-[#B1CCBC] transition-colors"
                 >
-                  <span>Setup GitHub App connection →</span>
+                  <span>Setup GitHub Connection</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Sidebar Widget Column */}
-        <div className="space-y-6">
-          {/* AI Daily Summary Card Placeholder */}
-          <div className="rounded-lg border border-[#252A28] bg-[#121515] p-5 space-y-3">
-            <div className="flex items-center gap-2">
+        {/* Right Column Cards */}
+        <div className="space-y-5">
+          {/* AI Summary Placeholder */}
+          <div className="rounded-lg border border-[#252A28] bg-[#121515] p-4 space-y-2.5">
+            <div className="flex items-center gap-2 border-b border-[#252A28] pb-2.5">
               <Sparkles className="h-4 w-4 text-[#91AD9D]" />
-              <h3 className="text-sm font-medium text-[#F1F0EA]">AI Daily Summary</h3>
+              <h3 className="text-xs font-semibold text-[#F1F0EA]">AI Daily Summary</h3>
             </div>
             <p className="text-xs text-[#737A76] leading-relaxed">
-              Your daily engineering summary will be automatically generated as work evidence and notes accumulate.
+              Your daily engineering summary will be automatically synthesized as work evidence and notes accumulate.
             </p>
           </div>
 
-          {/* Quick Capture Hint Card */}
-          <div className="rounded-lg border border-[#252A28] bg-[#121515] p-5 space-y-3">
-            <h3 className="text-xs font-mono text-[#A3AAA5] uppercase tracking-wider">Quick Note Dock</h3>
+          {/* Quick Capture Hint */}
+          <div className="rounded-lg border border-[#252A28] bg-[#121515] p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <Zap className="h-3.5 w-3.5 text-[#91AD9D]" />
+              <h3 className="text-xs font-semibold text-[#F1F0EA]">Quick Note Dock</h3>
+            </div>
             <p className="text-xs text-[#737A76] leading-relaxed">
-              Press <kbd className="font-mono text-[10px] bg-[#171A19] border border-[#252A28] px-1.5 py-0.5 rounded text-[#F1F0EA]">C</kbd> anywhere in the workbench to capture technical learnings, decisions, or accomplishments.
+              Press <kbd className="font-mono text-[10px] bg-[#0D0F0F] border border-[#252A28] px-1.5 py-0.5 rounded text-[#F1F0EA]">C</kbd> anywhere on your keyboard to capture technical learnings or decisions.
             </p>
           </div>
         </div>
