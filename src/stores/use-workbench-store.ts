@@ -8,7 +8,7 @@ export interface InspectorData {
 }
 
 interface WorkbenchState {
-  // Sidebar state (240px expanded ↔ 64px collapsed)
+  // Sidebar state
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
@@ -22,14 +22,15 @@ interface WorkbenchState {
   closeInspector: () => void;
 
   // Quick Capture Dock State
-  isQuickCaptureOpen: boolean;
-  toggleQuickCapture: () => void;
-  setQuickCaptureOpen: (open: boolean) => void;
+  isCaptureOpen: boolean;
+  openCapture: () => void;
+  closeCapture: () => void;
+  toggleCapture: () => void;
 
   // Command Palette State
   isCommandPaletteOpen: boolean;
-  toggleCommandPalette: () => void;
   setCommandPaletteOpen: (open: boolean) => void;
+  toggleCommandPalette: () => void;
 }
 
 export const useWorkbenchStore = create<WorkbenchState>((set) => ({
@@ -56,12 +57,13 @@ export const useWorkbenchStore = create<WorkbenchState>((set) => ({
       },
     })),
 
-  isQuickCaptureOpen: false,
-  toggleQuickCapture: () => set((state) => ({ isQuickCaptureOpen: !state.isQuickCaptureOpen })),
-  setQuickCaptureOpen: (open) => set({ isQuickCaptureOpen: open }),
+  isCaptureOpen: false,
+  openCapture: () => set({ isCaptureOpen: true }),
+  closeCapture: () => set({ isCaptureOpen: false }),
+  toggleCapture: () => set((state) => ({ isCaptureOpen: !state.isCaptureOpen })),
 
   isCommandPaletteOpen: false,
+  setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
   toggleCommandPalette: () =>
     set((state) => ({ isCommandPaletteOpen: !state.isCommandPaletteOpen })),
-  setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
 }));

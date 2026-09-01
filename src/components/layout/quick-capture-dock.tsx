@@ -1,169 +1,196 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Plus, X, CornerDownLeft } from "lucide-react";
-import { useWorkbenchStore } from "@/stores/use-workbench-store";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Plus, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-import { toast } from "sonner";
+import { useWorkbenchStore } from "@/stores/use-workbench-store";
 
-const entryKinds = [
-  { id: "note", label: "Note" },
-  { id: "accomplishment", label: "Accomplishment" },
-  { id: "learning", label: "Learning" },
-  { id: "blocker", label: "Blocker" },
-  { id: "decision", label: "Decision" },
-] as const;
+const CAPTURE_TYPES = ["Learning", "Decision", "Win", "Blocker", "Note"] as const;
+type CaptureType = (typeof CAPTURE_TYPES)[number];
 
 export function QuickCaptureDock() {
-  const { isQuickCaptureOpen, setQuickCaptureOpen } = useWorkbenchStore();
-  const [content, setContent] = useState("");
-  const [kind, setKind] = useState<string>("note");
-  const [project, setProject] = useState<string>("general");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isCaptureOpen, openCapture, closeCapture } = useWorkbenchStore();
+  const [text, setText] = useState("");
+  const [captureType, setCaptureType] = useState<CaptureType>("Note");
+  const [project, setProject] = useState("Curri AI");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const dockRef = useRef<HTMLDivElement>(null);
 
-  // Global hotkey listener for 'C' key
+  const today = new Date();
+  const monthAbbr = today.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+  const dayNum = today.getDate().toString().padStart(2, "0");
+  const time = today.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+
+  const handleOpen = useCallback(() => openCapture(), [openCapture]);
+  const handleClose = useCallback(() => {
+    closeCapture();
+    setText("");
+  }, [closeCapture]);
+
+  /* ─── Keyboard shortcut: C to open, Esc to close ─── */
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.key.toLowerCase() === "c" &&
-        !e.metaKey &&
-        !e.ctrlKey &&
-        !e.altKey
-      ) {
-        const activeElement = document.activeElement;
-        const isInput =
-          activeElement?.tagName === "INPUT" ||
-          activeElement?.tagName === "TEXTAREA" ||
-          activeElement?.tagName === "SELECT" ||
-          activeElement?.getAttribute("contenteditable") === "true";
-
-        if (!isInput) {
-          e.preventDefault();
-          setQuickCaptureOpen(true);
-        }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && isCaptureOpen) {
+        handleClose();
+        return;
       }
-
-      if (e.key === "Escape" && isQuickCaptureOpen) {
-        setQuickCaptureOpen(false);
+      const target = e.target as HTMLElement;
+      const isTyping = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
+      if (e.key === "c" && !isTyping && !isCaptureOpen && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        handleOpen();
       }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isQuickCaptureOpen, setQuickCaptureOpen]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!content.trim()) return;
-
-    setIsSubmitting(true);
-    try {
-      toast.success("Journal note recorded to career memory!");
-      setContent("");
-      setQuickCaptureOpen(false);
-    } catch {
-      toast.error("Failed to record note");
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isCaptureOpen, handleOpen, handleClose]);
 
-  if (!isQuickCaptureOpen) {
-    return (
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 hidden md:block">
-        <button
-          type="button"
-          onClick={() => setQuickCaptureOpen(true)}
-          className="flex items-center gap-3 rounded-full border border-[#252A28] bg-[#121515] px-4 py-2 text-xs text-[#A3AAA5] shadow-xl hover:border-[#91AD9D]/40 hover:text-[#F1F0EA] transition-colors"
-        >
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#91AD9D]/15 text-[#91AD9D]">
-            <Plus className="h-3.5 w-3.5" />
-          </div>
-          <span>What did you work on?</span>
-          <kbd className="font-mono text-[10px] bg-[#171A19] border border-[#252A28] px-1.5 py-0.5 rounded text-[#737A76] ml-2">
-            C
-          </kbd>
-        </button>
-      </div>
-    );
+  useEffect(() => {
+    if (isCaptureOpen) {
+      setTimeout(() => textareaRef.current?.focus(), 50);
+    }
+  }, [isCaptureOpen]);
+
+  /* ─── Cmd+Enter to save ───────────────────────────── */
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      handleSave();
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      handleClose();
+    }
   }
 
+  function handleSave() {
+    if (!text.trim()) return;
+    // TODO: connect to capture API
+    console.log("Captured:", { text, captureType, project });
+    setText("");
+    handleClose();
+  }
+
+  const isFocused = isCaptureOpen;
+
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 p-4 flex justify-center bg-[#0D0F0F]/80 backdrop-blur-sm">
-      <div className="w-full max-w-xl rounded-xl border border-[#252A28] bg-[#121515] p-3 shadow-2xl">
-        <form onSubmit={handleSubmit} className="space-y-3">
-          {/* Top Control Bar */}
-          <div className="flex items-center justify-between border-b border-[#252A28] pb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-[#737A76]">Kind:</span>
-              <div className="flex items-center gap-1 overflow-x-auto">
-                {entryKinds.map((k) => (
-                  <button
-                    key={k.id}
-                    type="button"
-                    onClick={() => setKind(k.id)}
-                    className={cn(
-                      "px-2.5 py-1 rounded text-[11px] font-medium transition-colors",
-                      kind === k.id
-                        ? "bg-[#91AD9D]/15 text-[#91AD9D] border border-[#91AD9D]/30"
-                        : "text-[#737A76] hover:text-[#A3AAA5] hover:bg-[#171A19]"
-                    )}
-                  >
-                    {k.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setQuickCaptureOpen(false)}
-              className="p-1 text-[#737A76] hover:text-[#F1F0EA] rounded"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+    <>
+      {/* ─── Scrim ──────────────────────────────────────── */}
+      {isCaptureOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={handleClose}
+          aria-hidden="true"
+        />
+      )}
 
-          {/* Note Input */}
-          <textarea
-            autoFocus
-            rows={3}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Record a decision, technical accomplishment, or blocker..."
-            className="w-full bg-transparent text-xs text-[#F1F0EA] placeholder-[#737A76] resize-none focus:outline-none"
-          />
-
-          {/* Action Row */}
-          <div className="flex items-center justify-between pt-1 border-t border-[#252A28]">
-            <select
-              value={project}
-              onChange={(e) => setProject(e.target.value)}
-              className="bg-[#171A19] border border-[#252A28] text-[11px] font-mono text-[#A3AAA5] rounded px-2.5 py-1 focus:outline-none"
-            >
-              <option value="general">General / No Project</option>
-              <option value="devtrail">DevTrail Web</option>
-            </select>
-
-            <div className="flex items-center gap-2">
+      {/* ─── Dock — centered relative to canvas ─────────── */}
+      <div
+        className="fixed bottom-4 z-50 pointer-events-none"
+        style={{ left: "216px", right: "0" }} // align to main canvas
+      >
+        <div className="mx-auto w-[480px] pointer-events-auto" ref={dockRef}>
+          <div
+            className={cn(
+              "rounded-[8px] border bg-[#121612] transition-all duration-[200ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]",
+              isFocused
+                ? "border-[#99B9A3]/55 shadow-[0_0_0_1px_rgba(153,185,163,0.12),0_12px_38px_rgba(0,0,0,0.28)]"
+                : "border-[#2B332D] shadow-[0_10px_35px_rgba(0,0,0,0.22)]"
+            )}
+          >
+            {/* ─── Collapsed — single bar ─────────── */}
+            {!isCaptureOpen && (
               <button
                 type="button"
-                onClick={() => setQuickCaptureOpen(false)}
-                className="px-3 py-1 text-xs text-[#737A76] hover:text-[#F1F0EA] transition-colors"
+                onClick={handleOpen}
+                id="quick-capture-trigger"
+                className="flex w-full items-center gap-2.5 h-[44px] px-4 text-left group"
               >
-                Cancel
+                <Plus className="h-[14px] w-[14px] stroke-[1.5px] text-[#8E968E] group-hover:text-[#99B9A3] transition-colors shrink-0" />
+                <span className="flex-1 text-[13px] text-[#C4CCC4] group-hover:text-[#F5F3EF] transition-colors select-none font-normal">
+                  Capture something you don&apos;t want to forget
+                </span>
+                <kbd className="font-mono text-[10px] text-[#8E968E] shrink-0 font-medium">C</kbd>
               </button>
-              <button
-                type="submit"
-                disabled={!content.trim() || isSubmitting}
-                className="flex items-center gap-1.5 rounded bg-[#91AD9D] px-3.5 py-1.5 text-xs font-semibold text-[#0D0F0F] hover:bg-[#B1CCBC] disabled:opacity-50 transition-colors"
-              >
-                <span>Save Note</span>
-                <CornerDownLeft className="h-3 w-3" />
-              </button>
-            </div>
+            )}
+
+            {/* ─── Expanded ───────────────────────── */}
+            {isCaptureOpen && (
+              <div className="p-3 space-y-2">
+                {/* Metadata row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {/* Project selector */}
+                    <button
+                      type="button"
+                      className="flex items-center gap-1 font-mono text-[10px] font-semibold uppercase tracking-[0.10em] text-[#99B9A3] hover:text-[#B4CEBC] transition-colors"
+                    >
+                      {project}
+                      <ChevronDown className="h-[11px] w-[11px] stroke-[1.5px]" />
+                    </button>
+                  </div>
+                  {/* Capture type selector */}
+                  <div className="flex items-center gap-1">
+                    {CAPTURE_TYPES.map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setCaptureType(t)}
+                        className={cn(
+                          "font-mono text-[10px] uppercase tracking-[0.08em] px-1.5 py-0.5 rounded-[4px] transition-colors",
+                          captureType === t
+                            ? "text-[#C3AA78] bg-[rgba(195,170,120,0.12)] font-semibold"
+                            : "text-[#8E968E] hover:text-[#F5F3EF]"
+                        )}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Textarea — visually dominant */}
+                <textarea
+                  ref={textareaRef}
+                  id="quick-capture-input"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="What did you learn, decide, or accomplish?"
+                  rows={3}
+                  className="w-full resize-none bg-transparent text-[14px] leading-[1.6] text-[#F5F3EF] placeholder:text-[#6E766E] outline-none"
+                />
+
+                {/* Footer — timestamp + save */}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="font-mono text-[10px] text-[#8E968E] uppercase tracking-[0.08em] font-medium">
+                    {monthAbbr} {dayNum} · {time}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleClose}
+                      className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#8E968E] hover:text-[#F5F3EF] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      id="quick-capture-save"
+                      onClick={handleSave}
+                      disabled={!text.trim()}
+                      className="flex items-center gap-1.5 h-[28px] rounded-[6px] bg-[#1B211D] border border-[#2B332D] px-3 font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-[#99B9A3] hover:bg-[#222823] hover:border-[#99B9A3]/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Save
+                      <kbd className="text-[9px] text-[#8AA792]">⌘↵</kbd>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

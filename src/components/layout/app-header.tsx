@@ -9,6 +9,17 @@ import { track } from "@/lib/analytics/analytics";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useWorkbenchStore } from "@/stores/use-workbench-store";
+import { cn } from "@/lib/utils/cn";
+
+function getBreadcrumb(pathname: string) {
+  if (pathname === "/today") return "Today";
+  if (pathname === "/timeline") return "Timeline";
+  if (pathname.startsWith("/projects")) return "Projects";
+  if (pathname === "/memory") return "Memory";
+  if (pathname === "/search") return "Search";
+  if (pathname.startsWith("/settings")) return "Settings";
+  return "Workbench";
+}
 
 export function UserMenu() {
   const { user } = useAuth();
@@ -29,7 +40,8 @@ export function UserMenu() {
     }
   }
 
-  const displayName = user?.profile?.username ?? user?.firstname ?? user?.email ?? "Developer";
+  const displayName =
+    user?.profile?.username ?? user?.firstname ?? user?.email ?? "Developer";
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
@@ -40,7 +52,8 @@ export function UserMenu() {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex h-7 w-7 items-center justify-center rounded-full bg-[#171A19] border border-[#252A28] text-[11px] font-mono font-medium text-[#F1F0EA] hover:border-[#91AD9D]/50 transition-colors focus:outline-none"
+        title={displayName}
+        className="flex h-[28px] w-[28px] items-center justify-center rounded-[6px] bg-[#151916] border border-[#222823] font-mono text-[11px] font-medium text-[#F4F1E8] hover:border-[#99B9A3]/50 hover:text-[#99B9A3] transition-colors focus:outline-none"
       >
         {initials}
       </button>
@@ -54,22 +67,25 @@ export function UserMenu() {
           />
           <div
             role="menu"
-            aria-label="User menu"
-            className="absolute right-0 z-50 mt-2 w-52 rounded-md border border-[#252A28] bg-[#121515] py-1 shadow-xl"
+            className="absolute right-0 z-50 mt-1.5 w-52 rounded-[8px] border border-[#222823] bg-[#101311] py-1 shadow-xl"
           >
-            <div className="border-b border-[#252A28] px-3 py-2">
-              <p className="truncate text-xs font-medium text-[#F1F0EA]">{displayName}</p>
+            <div className="border-b border-[#1B201C] px-3 py-2">
+              <p className="truncate text-[13px] font-medium text-[#F4F1E8]">
+                {displayName}
+              </p>
               {user?.email && (
-                <p className="truncate text-[11px] font-mono text-[#737A76]">{user.email}</p>
+                <p className="truncate font-mono text-[11px] text-[#707770]">
+                  {user.email}
+                </p>
               )}
             </div>
             <Link
               href="/settings/profile"
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 text-xs text-[#A3AAA5] hover:bg-[#1B1F1E] hover:text-[#F1F0EA]"
+              className="flex items-center gap-2 px-3 py-[7px] text-[13px] text-[#A8AEA8] hover:bg-[#191E1A] hover:text-[#F4F1E8] transition-colors"
             >
-              <UserIcon className="h-3.5 w-3.5 text-[#737A76]" />
+              <UserIcon className="h-[14px] w-[14px] stroke-[1.5px] text-[#505650]" />
               <span>Profile Settings</span>
             </Link>
             <button
@@ -78,9 +94,9 @@ export function UserMenu() {
               id="user-menu-logout"
               disabled={loading}
               onClick={handleLogout}
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-[#C98383] hover:bg-[#1B1F1E] disabled:opacity-50"
+              className="flex w-full items-center gap-2 px-3 py-[7px] text-left text-[13px] text-[#CB8585] hover:bg-[#191E1A] transition-colors disabled:opacity-50"
             >
-              <LogOut className="h-3.5 w-3.5" />
+              <LogOut className="h-[14px] w-[14px] stroke-[1.5px]" />
               <span>{loading ? "Signing out..." : "Sign out"}</span>
             </button>
           </div>
@@ -90,46 +106,35 @@ export function UserMenu() {
   );
 }
 
-function getBreadcrumb(pathname: string) {
-  if (pathname === "/today") return "Today";
-  if (pathname === "/timeline") return "Timeline";
-  if (pathname.startsWith("/projects")) return "Projects";
-  if (pathname === "/memory") return "Memory";
-  if (pathname === "/search") return "Search";
-  if (pathname.startsWith("/settings")) return "Settings";
-  return "Workbench";
-}
-
 export function AppHeader() {
   const pathname = usePathname() || "/today";
   const sectionTitle = getBreadcrumb(pathname);
   const { setCommandPaletteOpen } = useWorkbenchStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-13 items-center justify-between border-b border-[#252A28] bg-[#0D0F0F] px-4 md:px-6 select-none">
-      {/* Restrained Context Bar / Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs text-[#737A76]">
-        <span className="font-mono text-[11px] text-[#A3AAA5]">DevTrail</span>
-        <span>/</span>
-        <span className="text-[#F1F0EA] font-medium">{sectionTitle}</span>
+    <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between border-b border-[#222823] bg-[#0B0E0C] px-4 md:px-5">
+      {/* ─── Breadcrumb ────────────────────────── */}
+      <div className="flex items-center gap-1.5 font-mono text-[12px] text-[#8E968E] select-none">
+        <span>DevTrail</span>
+        <span className="text-[#6E766E]">/</span>
+        <span className="text-[#F5F3EF] font-medium">{sectionTitle}</span>
       </div>
 
-      {/* Restrained Application Chrome Controls */}
+      {/* ─── Right Actions ─────────────────────── */}
       <div className="flex items-center gap-3">
-        {/* Command Palette Trigger */}
+        {/* Search / Commands control — §16 */}
         <button
           type="button"
           onClick={() => setCommandPaletteOpen(true)}
-          className="flex items-center gap-2 rounded border border-[#252A28] bg-[#121515] px-2.5 py-1 text-xs text-[#A3AAA5] hover:bg-[#171A19] hover:text-[#F1F0EA] hover:border-[#323835] transition-colors"
+          className="flex h-[30px] items-center gap-2 rounded-[6px] border border-[#2B332D] bg-[#151916] px-2.5 font-mono text-[12px] text-[#8E968E] hover:border-[#38423A] hover:text-[#F5F3EF] transition-colors duration-[120ms]"
         >
-          <Search className="h-3.5 w-3.5 text-[#737A76]" />
+          <Search className="h-[13px] w-[13px] stroke-[1.5px] shrink-0 text-[#8E968E]" />
           <span className="hidden sm:inline">Search / Commands</span>
-          <kbd className="font-mono text-[10px] bg-[#171A19] border border-[#252A28] px-1 py-0.5 rounded text-[#737A76]">
-            ⌘K
-          </kbd>
+          <kbd className="hidden sm:inline text-[10px] text-[#8E968E] font-mono">⌘K</kbd>
         </button>
 
-        {/* User Menu */}
+        <div className="h-4 w-px bg-[#1B201C]" />
+
         <UserMenu />
       </div>
     </header>

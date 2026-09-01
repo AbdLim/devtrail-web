@@ -1,137 +1,147 @@
 "use client";
 
-import { useEffect } from "react";
-import { X, ExternalLink, GitCommit, GitPullRequest, Bookmark, CheckCircle2, FolderGit2, Calendar, Tag } from "lucide-react";
+import { X, ExternalLink } from "lucide-react";
 import { useWorkbenchStore } from "@/stores/use-workbench-store";
-import { cn } from "@/lib/utils/cn";
+
+function InspectorSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8E968E]">
+        {label}
+      </p>
+      <div className="text-[13px] text-[#E0E5E0] leading-[1.5]">{children}</div>
+    </div>
+  );
+}
 
 export function InspectorDrawer() {
   const { inspector, closeInspector } = useWorkbenchStore();
-  const { isOpen, data } = inspector;
+  const data = inspector.data;
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        closeInspector();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, closeInspector]);
+  if (!data) return null;
 
-  if (!isOpen || !data) return null;
+  const d = data.data as {
+    description?: string;
+    project?: string;
+    repo?: string;
+    timestamp?: string;
+    tags?: string[];
+    url?: string;
+    label?: string;
+    meta?: string;
+  };
+
+  const isGitHub = data.type === "evidence";
 
   return (
-    <aside className="w-80 shrink-0 border-l border-[#252A28] bg-[#121515] flex flex-col h-full z-20 select-none animate-in slide-in-from-right duration-150">
-      {/* Inspector Header */}
-      <div className="flex h-13 items-center justify-between px-4 border-b border-[#252A28] bg-[#0D0F0F]">
-        <span className="text-[11px] font-mono text-[#737A76] uppercase tracking-wider">
-          Evidence Context
+    <aside
+      className="w-[320px] shrink-0 border-l border-[#222823] bg-[#0F1310] flex flex-col overflow-hidden"
+      style={{ boxShadow: "-18px 0 40px rgba(0,0,0,0.18)" }}
+    >
+      {/* Header */}
+      <div className="flex h-12 shrink-0 items-center justify-between border-b border-[#222823] px-4">
+        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8E968E]">
+          Evidence Panel
         </span>
         <button
           type="button"
           onClick={closeInspector}
-          className="p-1 rounded text-[#737A76] hover:text-[#F1F0EA] hover:bg-[#171A19] transition-colors"
-          title="Close Inspector (Esc)"
+          title="Close inspector"
+          className="rounded p-1 text-[#8E968E] hover:bg-[#191E1A] hover:text-[#F5F3EF] transition-colors"
         >
-          <X className="h-4 w-4" />
+          <X className="h-[14px] w-[14px] stroke-[1.5px]" />
         </button>
       </div>
 
-      {/* Inspector Content Body */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-5 text-xs text-[#A3AAA5]">
-        {/* Title & Type Badge */}
-        <div className="space-y-2 border-b border-[#252A28] pb-4">
-          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#91AD9D]/10 text-[#91AD9D] border border-[#91AD9D]/20">
-            {data.type === "activity" && <GitCommit className="h-3 w-3" />}
-            {data.type === "evidence" && <GitPullRequest className="h-3 w-3" />}
-            {data.type === "accomplishment" && <CheckCircle2 className="h-3 w-3" />}
-            {data.type === "project" && <FolderGit2 className="h-3 w-3" />}
-            {!["activity", "evidence", "accomplishment", "project"].includes(data.type || "") && <Bookmark className="h-3 w-3" />}
-            <span className="capitalize">{data.type || "Evidence"}</span>
-          </div>
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-5">
+        {/* Primary identifier */}
+        {d.meta && (
+          <p className="font-mono text-[12px] text-[#8AA792] font-semibold tracking-[0.02em] uppercase">
+            {d.label ?? "Activity"}
+          </p>
+        )}
 
-          <h3 className="text-sm font-semibold text-[#F1F0EA] leading-snug">
-            {data.title}
-          </h3>
+        <h2 className="text-[15px] font-semibold leading-[1.35] text-[#F5F3EF]">
+          {data.title}
+        </h2>
 
-          {data.subtitle && (
-            <p className="text-xs font-mono text-[#737A76]">
-              {data.subtitle}
-            </p>
+        {data.subtitle && (
+          <p className="font-mono text-[11px] text-[#8E968E] uppercase tracking-[0.05em]">
+            {data.subtitle}
+          </p>
+        )}
+
+        {/* Description if present */}
+        {d.description && (
+          <p className="text-[13px] text-[#C4CCC4] leading-[1.6]">
+            {d.description}
+          </p>
+        )}
+
+        <div className="border-t border-[#222823]" />
+
+        {/* Structured metadata sections */}
+        <div className="space-y-4">
+          {isGitHub && (
+            <InspectorSection label="Source">
+              <span className="text-[#F5F3EF] font-medium">GitHub</span>
+            </InspectorSection>
+          )}
+          {!isGitHub && (
+            <InspectorSection label="Source">
+              <span className="text-[#F5F3EF] font-medium">Manual note</span>
+            </InspectorSection>
+          )}
+
+          {d.project && (
+            <InspectorSection label="Project">
+              <span className="text-[#F5F3EF] font-medium">{d.project}</span>
+            </InspectorSection>
+          )}
+
+          {d.repo && (
+            <InspectorSection label="Repository">
+              <span className="font-mono text-[12px] text-[#F5F3EF]">{d.repo}</span>
+            </InspectorSection>
+          )}
+
+          {d.tags && d.tags.length > 0 && (
+            <InspectorSection label="Technologies">
+              <div className="flex flex-wrap gap-x-3 gap-y-1">
+                {d.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="font-mono text-[11px] text-[#C4CCC4]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </InspectorSection>
+          )}
+
+          {d.timestamp && (
+            <InspectorSection label="Verified">
+              <span className="font-mono text-[12px] text-[#F5F3EF]">{d.timestamp}</span>
+            </InspectorSection>
           )}
         </div>
 
-        {/* Detailed Metadata Sections */}
-        {data.data ? (
-          <div className="space-y-4">
-            {data.data.description && (
-              <div className="space-y-1">
-                <span className="text-[10px] font-mono text-[#737A76] uppercase tracking-wider">
-                  Summary / Details
-                </span>
-                <div className="p-3 rounded border border-[#252A28] bg-[#0D0F0F] text-[#F1F0EA] leading-relaxed">
-                  {data.data.description}
-                </div>
-              </div>
-            )}
-
-            {data.data.project && (
-              <div className="flex items-center justify-between py-1.5 border-b border-[#252A28]">
-                <span className="text-[#737A76] font-mono text-[11px]">Project</span>
-                <span className="text-[#F1F0EA] font-medium">{data.data.project}</span>
-              </div>
-            )}
-
-            {data.data.repo && (
-              <div className="flex items-center justify-between py-1.5 border-b border-[#252A28]">
-                <span className="text-[#737A76] font-mono text-[11px]">Repository</span>
-                <span className="text-[#F1F0EA] font-mono">{data.data.repo}</span>
-              </div>
-            )}
-
-            {data.data.timestamp && (
-              <div className="flex items-center justify-between py-1.5 border-b border-[#252A28]">
-                <span className="text-[#737A76] font-mono text-[11px]">Timestamp</span>
-                <span className="text-[#F1F0EA] font-mono">{data.data.timestamp}</span>
-              </div>
-            )}
-
-            {data.data.tags && Array.isArray(data.data.tags) && (
-              <div className="space-y-1.5 pt-1">
-                <span className="text-[10px] font-mono text-[#737A76] uppercase tracking-wider">
-                  Observed Technologies
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {data.data.tags.map((tag: string) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-0.5 rounded border border-[#252A28] bg-[#171A19] text-[11px] font-mono text-[#A3AAA5]"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {data.data.url && (
-              <div className="pt-3">
-                <a
-                  href={data.data.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-[#91AD9D] hover:underline font-mono"
-                >
-                  <span>Open on GitHub ↗</span>
-                </a>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="py-8 text-center text-[#737A76]">
-            <p>Select an item in the timeline to inspect evidence details.</p>
-          </div>
+        {/* External link if present */}
+        {d.url && (
+          <>
+            <div className="border-t border-[#222823]" />
+            <a
+              href={d.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#99B9A3] hover:text-[#B4CEBC] transition-colors"
+            >
+              Open on GitHub
+              <ExternalLink className="h-[12px] w-[12px] stroke-[1.5px]" />
+            </a>
+          </>
         )}
       </div>
     </aside>

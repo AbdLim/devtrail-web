@@ -1,35 +1,53 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-sans), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: var(--font-mono), "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: var(--font-sans), "Instrument Sans", Inter, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-mono), "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
 
-  /* Quiet Workbench Palette */
-  --color-canvas: #0D0F0F;
-  --color-surface: #121515;
-  --color-surface-raised: #171A19;
-  --color-surface-hover: #1B1F1E;
+  /* ─── Canvas & Surface Layers ────────────────────── */
+  --color-canvas: #090B0A;
+  --color-sidebar: #0C0F0D;
+  --color-topbar: #0B0E0C;
+  --color-surface: #101311;
+  --color-surface-raised: #151916;
+  --color-surface-hover: #191E1A;
+  --color-surface-selected: #1B211D;
 
-  --color-border-subtle: #252A28;
-  --color-border-strong: #323835;
+  /* ─── Borders ─────────────────────────────────────── */
+  --color-border: #222823;
+  --color-border-subtle: #1B201C;
+  --color-border-strong: #303832;
 
-  --color-text-primary: #F1F0EA;
-  --color-text-secondary: #A3AAA5;
-  --color-text-muted: #737A76;
+  /* ─── Text Contrast & Hierarchy (High Legibility) ── */
+  --color-text-primary: #F5F3EF;     /* High contrast primary text */
+  --color-text-secondary: #C4CCC4;   /* Clear readable secondary text */
+  --color-text-muted: #8E968E;       /* Legible timestamps, metadata, group labels */
+  --color-text-faint: #6E766E;       /* Min 4.5:1 contrast faint text */
 
-  --color-accent: #91AD9D;
-  --color-accent-strong: #B1CCBC;
-  --color-accent-subtle: rgba(145, 173, 157, 0.12);
+  /* ─── Sage — verified evidence / active / success ─── */
+  --color-sage: #99B9A3;
+  --color-sage-bright: #B4CEBC;
+  --color-sage-muted: #8AA792;
+  --color-sage-surface: rgba(153, 185, 163, 0.10);
 
-  --color-info: #8EA5B8;
-  --color-warning: #C2AA73;
-  --color-danger: #C98383;
-  --color-success: #8FB39A;
+  /* ─── Violet — AI memory / semantic inference ─────── */
+  --color-violet: #9C92BA;
+  --color-violet-bright: #B8ADD1;
+  --color-violet-muted: #958BB3;
+  --color-violet-surface: rgba(156, 146, 186, 0.10);
+
+  /* ─── Gold — human learning / manual insight ──────── */
+  --color-gold: #C3AA78;
+  --color-gold-muted: #A6926A;
+  --color-gold-surface: rgba(195, 170, 120, 0.09);
+
+  /* ─── Functional ──────────────────────────────────── */
+  --color-error: #E58B8B;
 }
 
 :root {
-  --background: #0D0F0F;
-  --foreground: #F1F0EA;
+  --background: #090B0A;
+  --foreground: #F5F3EF;
 }
 
 html, body {
@@ -43,21 +61,8 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
-/* Restrained subtle scrollbar */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #252A28;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #323835;
-}
+/* ─── Restrained Custom Scrollbar ──────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2A312B; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #38423A; }

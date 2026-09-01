@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import { AppProviders } from "@/providers/app-providers";
 import { APP_NAME } from "@/lib/config/constants";
 import "./globals.css";
 
-const inter = Inter({
+const sans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     default: APP_NAME,
     template: `%s | ${APP_NAME}`,
   },
-  description: "DevTrail - Career Memory & Proof of Work for Developers",
+  description: "DevTrail — Career memory and proof of work for developers",
 };
 
 export default function RootLayout({
@@ -30,8 +30,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`dark ${inter.variable} ${mono.variable}`}>
-      <body className="font-sans antialiased text-[#F1F0EA] bg-[#0D0F0F] selection:bg-[#91AD9D]/30 selection:text-[#F1F0EA]">
+    <html lang="en" className={`dark ${sans.variable} ${mono.variable}`}>
+      <body className="font-sans antialiased bg-[#090B0A] text-[#F4F1E8] selection:bg-[#99B9A3]/25 selection:text-[#F4F1E8]">
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

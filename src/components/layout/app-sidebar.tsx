@@ -16,13 +16,74 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { useWorkbenchStore } from "@/stores/use-workbench-store";
 
-const mainNavItems = [
+const workNavItems = [
   { href: "/today", label: "Today", icon: Calendar },
   { href: "/timeline", label: "Timeline", icon: GitCommitHorizontal },
   { href: "/projects", label: "Projects", icon: FolderGit2 },
+];
+
+const memoryNavItems = [
   { href: "/memory", label: "Memory", icon: BrainCircuit },
   { href: "/search", label: "Search", icon: Search },
 ];
+
+function NavGroup({
+  label,
+  items,
+  pathname,
+  collapsed,
+}: {
+  label: string;
+  items: typeof workNavItems;
+  pathname: string | null;
+  collapsed: boolean;
+}) {
+  return (
+    <div className="space-y-px">
+      {!collapsed && (
+        <div className="px-3 pt-4 pb-1">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8E968E]">
+            {label}
+          </span>
+        </div>
+      )}
+      {collapsed && <div className="h-3" />}
+      {items.map((item) => {
+        const Icon = item.icon;
+        const isActive =
+          pathname === item.href ||
+          (item.href !== "/today" && pathname?.startsWith(item.href));
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            title={collapsed ? item.label : undefined}
+            className={cn(
+              "group relative flex items-center gap-3 px-3 transition-colors duration-[120ms]",
+              "h-[34px] text-[13px]",
+              isActive
+                ? "bg-[#1B211D] text-[#F4F1E8] font-medium"
+                : "text-[#A8AEA8] hover:bg-[#191E1A] hover:text-[#F4F1E8]",
+              collapsed && "justify-center"
+            )}
+          >
+            {/* Sage 2px left active marker */}
+            {isActive && (
+              <span className="absolute left-0 inset-y-0 w-[2px] bg-[#99B9A3] rounded-r-px" />
+            )}
+            <Icon
+              className={cn(
+                "h-[15px] w-[15px] shrink-0 stroke-[1.5px] transition-colors duration-[120ms]",
+                isActive ? "text-[#99B9A3]" : "text-[#8E968E] group-hover:text-[#F5F3EF]"
+              )}
+            />
+            {!collapsed && <span className="truncate leading-none">{item.label}</span>}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -31,18 +92,20 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "shrink-0 border-r border-[#252A28] bg-[#121515] flex flex-col transition-all duration-150 ease-out z-20 select-none",
-        isSidebarCollapsed ? "w-14" : "w-52"
+        "shrink-0 border-r border-[#222823] bg-[#0C0F0D] flex flex-col overflow-hidden transition-all duration-200 ease-out z-20",
+        isSidebarCollapsed ? "w-14" : "w-[216px]"
       )}
     >
-      {/* Sidebar Header with High-Contrast Logo */}
-      <div className="flex h-13 items-center justify-between px-3.5 border-b border-[#252A28]">
+      {/* ─── Brand Area ─────────────────────────────────── */}
+      <div
+        className={cn(
+          "flex h-14 shrink-0 items-center border-b border-[#222823] px-4",
+          isSidebarCollapsed ? "justify-center" : "justify-between"
+        )}
+      >
         <Link
           href="/today"
-          className={cn(
-            "flex items-center gap-2 transition-opacity hover:opacity-90 overflow-hidden py-1",
-            isSidebarCollapsed && "justify-center w-full"
-          )}
+          className="flex items-center gap-2 transition-opacity hover:opacity-90 overflow-hidden"
         >
           {isSidebarCollapsed ? (
             <Image
@@ -51,17 +114,17 @@ export function AppSidebar() {
               width={22}
               height={22}
               style={{ width: "auto", height: "auto" }}
-              className="h-5 w-auto object-contain"
+              className="h-5 w-auto shrink-0"
               priority
             />
           ) : (
             <Image
               src="/images/logo_wordmark_light.png"
               alt="DevTrail"
-              width={105}
+              width={106}
               height={22}
               style={{ width: "auto", height: "auto" }}
-              className="h-5 w-auto object-contain brightness-110"
+              className="h-[22px] w-auto brightness-[1.08]"
               priority
             />
           )}
@@ -71,56 +134,54 @@ export function AppSidebar() {
             type="button"
             onClick={toggleSidebar}
             title="Collapse sidebar"
-            className="p-1 rounded text-[#737A76] hover:text-[#F1F0EA] hover:bg-[#171A19] transition-colors"
+            className="shrink-0 p-1 rounded text-[#8E968E] hover:text-[#F5F3EF] hover:bg-[#191E1A] transition-colors"
           >
-            <PanelLeftClose className="h-3.5 w-3.5" />
+            <PanelLeftClose className="h-[15px] w-[15px] stroke-[1.5px]" />
           </button>
         )}
       </div>
 
-      {/* Primary Navigation Links with Thin Sage Accent Marker */}
-      <div className="flex-1 py-3 space-y-0.5 overflow-y-auto">
-        {mainNavItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href || (item.href !== "/today" && pathname?.startsWith(item.href));
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              title={isSidebarCollapsed ? item.label : undefined}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 text-xs transition-colors relative font-normal",
-                isActive
-                  ? "bg-[#171A19] text-[#F1F0EA] font-medium border-l-2 border-[#91AD9D]"
-                  : "text-[#A3AAA5] hover:bg-[#1B1F1E] hover:text-[#F1F0EA] border-l-2 border-transparent",
-                isSidebarCollapsed && "justify-center px-0"
-              )}
-            >
-              <Icon
-                className={cn(
-                  "h-4 w-4 shrink-0 transition-colors",
-                  isActive ? "text-[#91AD9D]" : "text-[#737A76]"
-                )}
-              />
-              {!isSidebarCollapsed && <span className="truncate">{item.label}</span>}
-            </Link>
-          );
-        })}
+      {/* ─── Navigation Groups ───────────────────────────── */}
+      <div className="flex-1 overflow-y-auto py-1">
+        <NavGroup
+          label="Work"
+          items={workNavItems}
+          pathname={pathname}
+          collapsed={isSidebarCollapsed}
+        />
+        <NavGroup
+          label="Memory"
+          items={memoryNavItems}
+          pathname={pathname}
+          collapsed={isSidebarCollapsed}
+        />
       </div>
 
-      {/* Bottom Navigation Section */}
-      <div className="py-2 border-t border-[#252A28] bg-[#0D0F0F]/30 space-y-0.5">
+      {/* ─── Bottom: Settings ─────────────────────────────── */}
+      <div className="shrink-0 border-t border-[#222823] py-1">
         <Link
           href="/settings/profile"
           title={isSidebarCollapsed ? "Settings" : undefined}
           className={cn(
-            "flex items-center gap-3 px-3 py-2 text-xs text-[#A3AAA5] hover:bg-[#1B1F1E] hover:text-[#F1F0EA] transition-colors border-l-2 border-transparent",
-            pathname?.startsWith("/settings") && "bg-[#171A19] text-[#F1F0EA] font-medium border-l-2 border-[#91AD9D]",
-            isSidebarCollapsed && "justify-center px-0"
+            "group relative flex items-center gap-3 px-3 h-[34px] text-[13px] transition-colors duration-[120ms]",
+            pathname?.startsWith("/settings")
+              ? "bg-[#1B211D] text-[#F4F1E8] font-medium"
+              : "text-[#A8AEA8] hover:bg-[#191E1A] hover:text-[#F4F1E8]",
+            isSidebarCollapsed && "justify-center"
           )}
         >
-          <Settings className="h-4 w-4 shrink-0 text-[#737A76]" />
-          {!isSidebarCollapsed && <span>Settings</span>}
+          {pathname?.startsWith("/settings") && (
+            <span className="absolute left-0 inset-y-0 w-[2px] bg-[#99B9A3] rounded-r-px" />
+          )}
+          <Settings
+            className={cn(
+              "h-[15px] w-[15px] shrink-0 stroke-[1.5px] transition-colors duration-[120ms]",
+              pathname?.startsWith("/settings")
+                ? "text-[#99B9A3]"
+                : "text-[#8E968E] group-hover:text-[#F5F3EF]"
+            )}
+          />
+          {!isSidebarCollapsed && <span className="truncate leading-none">Settings</span>}
         </Link>
 
         {isSidebarCollapsed && (
@@ -128,9 +189,9 @@ export function AppSidebar() {
             type="button"
             onClick={toggleSidebar}
             title="Expand sidebar"
-            className="w-full flex items-center justify-center py-2 text-[#737A76] hover:text-[#F1F0EA] hover:bg-[#171A19] transition-colors"
+            className="flex w-full items-center justify-center h-8 text-[#8E968E] hover:text-[#F5F3EF] hover:bg-[#191E1A] transition-colors"
           >
-            <PanelLeftOpen className="h-3.5 w-3.5" />
+            <PanelLeftOpen className="h-[15px] w-[15px] stroke-[1.5px]" />
           </button>
         )}
       </div>
