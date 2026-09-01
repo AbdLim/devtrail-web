@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { X, ExternalLink, GitCommit, GitPullRequest, Bookmark, CheckCircle2, FolderGit2 } from "lucide-react";
+import { X, ExternalLink, GitCommit, GitPullRequest, Bookmark, CheckCircle2, FolderGit2, Calendar, Tag } from "lucide-react";
 import { useWorkbenchStore } from "@/stores/use-workbench-store";
 import { cn } from "@/lib/utils/cn";
 
@@ -21,106 +21,119 @@ export function InspectorDrawer() {
 
   if (!isOpen || !data) return null;
 
-  const renderIcon = () => {
-    switch (data.type) {
-      case "activity":
-        return <GitCommit className="h-4 w-4 text-[#8EA5B8]" />;
-      case "evidence":
-        return <GitPullRequest className="h-4 w-4 text-[#91AD9D]" />;
-      case "accomplishment":
-        return <CheckCircle2 className="h-4 w-4 text-[#8FB39A]" />;
-      case "project":
-        return <FolderGit2 className="h-4 w-4 text-[#C2AA73]" />;
-      default:
-        return <Bookmark className="h-4 w-4 text-[#A3AAA5]" />;
-    }
-  };
-
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity"
-        onClick={closeInspector}
-        aria-hidden="true"
-      />
+    <aside className="w-80 shrink-0 border-l border-[#252A28] bg-[#121515] flex flex-col h-full z-20 select-none animate-in slide-in-from-right duration-150">
+      {/* Inspector Header */}
+      <div className="flex h-13 items-center justify-between px-4 border-b border-[#252A28] bg-[#0D0F0F]">
+        <span className="text-[11px] font-mono text-[#737A76] uppercase tracking-wider">
+          Evidence Context
+        </span>
+        <button
+          type="button"
+          onClick={closeInspector}
+          className="p-1 rounded text-[#737A76] hover:text-[#F1F0EA] hover:bg-[#171A19] transition-colors"
+          title="Close Inspector (Esc)"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
 
-      {/* Slide-over Inspector Drawer Panel */}
-      <aside className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-[#121515] border-l border-[#252A28] shadow-2xl flex flex-col transition-transform duration-200 ease-in-out">
-        {/* Drawer Header */}
-        <div className="flex h-14 items-center justify-between px-4 border-b border-[#252A28] bg-[#0D0F0F]">
-          <div className="flex items-center gap-2">
-            <div className="p-1 rounded bg-[#171A19] border border-[#252A28]">
-              {renderIcon()}
-            </div>
-            <div>
-              <h3 className="text-xs font-semibold text-[#F1F0EA] truncate max-w-[240px]">
-                {data.title}
-              </h3>
-              {data.subtitle && (
-                <p className="text-[11px] font-mono text-[#737A76] truncate max-w-[240px]">
-                  {data.subtitle}
-                </p>
-              )}
-            </div>
+      {/* Inspector Content Body */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-5 text-xs text-[#A3AAA5]">
+        {/* Title & Type Badge */}
+        <div className="space-y-2 border-b border-[#252A28] pb-4">
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#91AD9D]/10 text-[#91AD9D] border border-[#91AD9D]/20">
+            {data.type === "activity" && <GitCommit className="h-3 w-3" />}
+            {data.type === "evidence" && <GitPullRequest className="h-3 w-3" />}
+            {data.type === "accomplishment" && <CheckCircle2 className="h-3 w-3" />}
+            {data.type === "project" && <FolderGit2 className="h-3 w-3" />}
+            {!["activity", "evidence", "accomplishment", "project"].includes(data.type || "") && <Bookmark className="h-3 w-3" />}
+            <span className="capitalize">{data.type || "Evidence"}</span>
           </div>
-          <button
-            type="button"
-            onClick={closeInspector}
-            className="p-1 rounded-md text-[#737A76] hover:text-[#F1F0EA] hover:bg-[#1B1F1E] transition"
-          >
-            <X className="h-4 w-4" />
-          </button>
+
+          <h3 className="text-sm font-semibold text-[#F1F0EA] leading-snug">
+            {data.title}
+          </h3>
+
+          {data.subtitle && (
+            <p className="text-xs font-mono text-[#737A76]">
+              {data.subtitle}
+            </p>
+          )}
         </div>
 
-        {/* Drawer Body Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs text-[#A3AAA5]">
-          {data.data ? (
-            <div className="space-y-3">
-              {data.data.description && (
-                <div>
-                  <h4 className="text-[11px] font-mono text-[#737A76] uppercase tracking-wider mb-1">
-                    Details
-                  </h4>
-                  <p className="text-[#F1F0EA] leading-relaxed bg-[#171A19] p-3 rounded border border-[#252A28]">
-                    {data.data.description}
-                  </p>
+        {/* Detailed Metadata Sections */}
+        {data.data ? (
+          <div className="space-y-4">
+            {data.data.description && (
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono text-[#737A76] uppercase tracking-wider">
+                  Summary / Details
+                </span>
+                <div className="p-3 rounded border border-[#252A28] bg-[#0D0F0F] text-[#F1F0EA] leading-relaxed">
+                  {data.data.description}
                 </div>
-              )}
+              </div>
+            )}
 
-              {data.data.repo && (
-                <div className="flex items-center justify-between py-2 border-b border-[#252A28]">
-                  <span className="text-[#737A76] font-mono">Repository</span>
-                  <span className="text-[#F1F0EA] font-mono font-medium">{data.data.repo}</span>
+            {data.data.project && (
+              <div className="flex items-center justify-between py-1.5 border-b border-[#252A28]">
+                <span className="text-[#737A76] font-mono text-[11px]">Project</span>
+                <span className="text-[#F1F0EA] font-medium">{data.data.project}</span>
+              </div>
+            )}
+
+            {data.data.repo && (
+              <div className="flex items-center justify-between py-1.5 border-b border-[#252A28]">
+                <span className="text-[#737A76] font-mono text-[11px]">Repository</span>
+                <span className="text-[#F1F0EA] font-mono">{data.data.repo}</span>
+              </div>
+            )}
+
+            {data.data.timestamp && (
+              <div className="flex items-center justify-between py-1.5 border-b border-[#252A28]">
+                <span className="text-[#737A76] font-mono text-[11px]">Timestamp</span>
+                <span className="text-[#F1F0EA] font-mono">{data.data.timestamp}</span>
+              </div>
+            )}
+
+            {data.data.tags && Array.isArray(data.data.tags) && (
+              <div className="space-y-1.5 pt-1">
+                <span className="text-[10px] font-mono text-[#737A76] uppercase tracking-wider">
+                  Observed Technologies
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {data.data.tags.map((tag: string) => (
+                    <span
+                      key={tag}
+                      className="px-2 py-0.5 rounded border border-[#252A28] bg-[#171A19] text-[11px] font-mono text-[#A3AAA5]"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
-              {data.data.timestamp && (
-                <div className="flex items-center justify-between py-2 border-b border-[#252A28]">
-                  <span className="text-[#737A76] font-mono">Timestamp</span>
-                  <span className="text-[#F1F0EA] font-mono">{data.data.timestamp}</span>
-                </div>
-              )}
-
-              {data.data.url && (
+            {data.data.url && (
+              <div className="pt-3">
                 <a
                   href={data.data.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-[#91AD9D] hover:underline pt-2 font-mono"
+                  className="inline-flex items-center gap-1.5 text-xs text-[#91AD9D] hover:underline font-mono"
                 >
-                  <span>View source on GitHub</span>
-                  <ExternalLink className="h-3.5 w-3.5" />
+                  <span>Open on GitHub ↗</span>
                 </a>
-              )}
-            </div>
-          ) : (
-            <div className="py-8 text-center text-[#737A76]">
-              <p>No additional evidence details attached.</p>
-            </div>
-          )}
-        </div>
-      </aside>
-    </>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="py-8 text-center text-[#737A76]">
+            <p>Select an item in the timeline to inspect evidence details.</p>
+          </div>
+        )}
+      </div>
+    </aside>
   );
 }
