@@ -12,6 +12,7 @@ export const endpoints = {
   },
   profile: {
     me: "/auth/profile",
-    complete: "/users/me/profile",
+    complete: "/auth/profile",
   },
 } as const;
+

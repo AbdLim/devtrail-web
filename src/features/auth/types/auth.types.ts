@@ -1,8 +1,19 @@
-export type UserProfile = {
+export type DeveloperProfile = {
+  id?: string;
+  userId?: string;
+  username?: string;
+  bio?: string;
+  avatarUrl?: string | null;
+  jobTitle?: string;
+  company?: string;
+  location?: string;
+  websiteUrl?: string;
+  githubUsername?: string;
+  skills?: string[];
+  timezone?: string;
   firstName?: string;
   lastName?: string;
   displayName?: string;
-  avatarUrl?: string | null;
 };
 
 export type User = {
@@ -12,9 +23,13 @@ export type User = {
   lastname?: string;
   age?: number;
   is_email_verified?: boolean;
+  is_profile_completed?: boolean;
   emailVerified?: boolean;
   profileComplete?: boolean;
-  profile?: UserProfile | null;
+  email_verified_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  profile?: DeveloperProfile | null;
 };
 
 export type AuthSession = {
@@ -24,7 +39,6 @@ export type AuthSession = {
 
 export type LoginResult = {
   user?: User;
-  token?: string;
   access_token?: string;
   refresh_token?: string;
 };
@@ -32,7 +46,6 @@ export type LoginResult = {
 export type SignupResult = {
   message?: string;
   user?: User;
-  challengeId?: string;
 };
 
 export type VerifyOtpResult = {
@@ -40,9 +53,10 @@ export type VerifyOtpResult = {
   profileComplete?: boolean;
   message?: string;
   user?: User;
+  access_token?: string;
+  refresh_token?: string;
 };
 
 export type ResendOtpResult = {
   message?: string;
-  resendAfter?: number;
 };

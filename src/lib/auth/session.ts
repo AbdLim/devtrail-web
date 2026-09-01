@@ -44,7 +44,7 @@ async function refreshServerToken(refreshToken: string): Promise<string | null> 
           secure: process.env.NODE_ENV === "production",
         });
       } catch {
-        // Ignored if in read-only context
+        // Read-only context fallback
       }
     }
 
@@ -57,7 +57,7 @@ async function refreshServerToken(refreshToken: string): Promise<string | null> 
           secure: process.env.NODE_ENV === "production",
         });
       } catch {
-        // Ignored if in read-only context
+        // Read-only context fallback
       }
     }
 
@@ -68,28 +68,46 @@ async function refreshServerToken(refreshToken: string): Promise<string | null> 
 }
 
 function parseUserData(data: Record<string, unknown>): User | null {
-  const userRaw = (data.user || data) as Record<string, unknown>;
+  const dataObj = (data.data || data) as Record<string, unknown>;
+  const userRaw = (data.user || dataObj.user || dataObj) as Record<string, unknown>;
   if (!userRaw || (!userRaw.id && !userRaw.email)) return null;
 
   const firstname = (userRaw.firstname || userRaw.firstName || "") as string;
   const lastname = (userRaw.lastname || userRaw.lastName || "") as string;
   const isEmailVerified = Boolean(userRaw.is_email_verified ?? userRaw.emailVerified ?? true);
-  const displayName = (userRaw.displayName as string) || `${firstname} ${lastname}`.trim() || (userRaw.email as string);
+  const isProfileCompleted = Boolean(userRaw.is_profile_completed ?? userRaw.profileComplete ?? false);
+
+  const profileRaw = userRaw.profile as Record<string, unknown> | null;
 
   return {
     id: (userRaw.id as string) || "",
     email: (userRaw.email as string) || "",
     firstname,
     lastname,
-    age: typeof userRaw.age === "number" ? userRaw.age : undefined,
     is_email_verified: isEmailVerified,
     emailVerified: isEmailVerified,
-    profileComplete: Boolean(firstname && lastname),
-    profile: {
-      firstName: firstname,
-      lastName: lastname,
-      displayName,
-    },
+    is_profile_completed: isProfileCompleted,
+    profileComplete: isProfileCompleted,
+    profile: profileRaw
+      ? {
+          id: profileRaw.id as string,
+          username: profileRaw.username as string,
+          bio: profileRaw.bio as string,
+          avatarUrl: profileRaw.avatarUrl as string,
+          jobTitle: profileRaw.jobTitle as string,
+          company: profileRaw.company as string,
+          location: profileRaw.location as string,
+          websiteUrl: profileRaw.websiteUrl as string,
+          githubUsername: profileRaw.githubUsername as string,
+          skills: Array.isArray(profileRaw.skills) ? profileRaw.skills : [],
+          timezone: profileRaw.timezone as string,
+          displayName: (profileRaw.username || `${firstname} ${lastname}`.trim() || userRaw.email) as string,
+        }
+      : {
+          firstName: firstname,
+          lastName: lastname,
+          displayName: `${firstname} ${lastname}`.trim() || (userRaw.email as string),
+        },
   };
 }
 
