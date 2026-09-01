@@ -112,7 +112,7 @@ export function AppHeader() {
   const { setCommandPaletteOpen } = useWorkbenchStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between border-b border-[#222823] bg-[#0B0E0C] px-4 md:px-5">
+    <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between border-b border-[#222823] bg-[#121514] px-4 md:px-5">
       {/* ─── Breadcrumb ────────────────────────── */}
       <div className="flex items-center gap-1.5 font-mono text-[12px] text-[#8E968E] select-none">
         <span>DevTrail</span>
