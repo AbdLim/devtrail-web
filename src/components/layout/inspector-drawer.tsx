@@ -36,7 +36,10 @@ export function InspectorDrawer() {
   return (
     <aside
       className="w-[320px] shrink-0 border-l border-[#222823] bg-[#0F1310] flex flex-col overflow-hidden"
-      style={{ boxShadow: "-18px 0 40px rgba(0,0,0,0.18)" }}
+      style={{
+        boxShadow: "-18px 0 40px rgba(0,0,0,0.18)",
+        animation: "inspectorSlideIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards",
+      }}
     >
       {/* Header */}
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-[#222823] px-4">

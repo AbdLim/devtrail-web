@@ -99,7 +99,13 @@ function ActivityRow({
 
       {/* ─── Marker + connector line column ── */}
       <div className="w-6 shrink-0 flex flex-col items-center">
-        <span className={cn("text-[12px] leading-none mt-0.5", symbol.color)}>
+        <span
+          className={cn(
+            "leading-none mt-0.5 transition-all duration-[140ms]",
+            symbol.color,
+            isSelected ? "text-[8px]" : "text-[6px] group-hover:text-[8px]"
+          )}
+        >
           {symbol.char}
         </span>
         {!isLast && (
@@ -113,11 +119,14 @@ function ActivityRow({
           type="button"
           onClick={onSelect}
           className={cn(
-            "w-full text-left rounded-[6px] px-3 py-2.5 -ml-3 transition-all duration-[130ms] group",
+            "w-full text-left rounded-[6px] px-3 py-2.5 -ml-3 transition-all duration-[140ms] group",
             isSelected
               ? "bg-[#1B211D]"
               : "hover:bg-[#191E1A]/80"
           )}
+          style={{
+            transform: isSelected ? "none" : "translateX(0px)",
+          }}
         >
           {/* Type label — crisp mono uppercase colored by source */}
           <div className="mb-1.5">
@@ -171,6 +180,11 @@ export function TodayView({ userName }: { userName: string }) {
     .toUpperCase();
   const dayNum = today.getDate().toString().padStart(2, "0");
 
+  // Calculate week number
+  const startOfYear = new Date(today.getFullYear(), 0, 1);
+  const days = Math.floor((today.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
+  const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
+
   function handleSelectActivity(item: ActivityItem) {
     if (inspector.isOpen && inspector.data?.title === item.title) {
       closeInspector();
@@ -216,6 +230,14 @@ export function TodayView({ userName }: { userName: string }) {
 
         {/* Asymmetric metrics — right column */}
         <div className="text-right space-y-1 pt-1">
+          <div>
+            <span className="font-mono text-[22px] font-semibold text-[#F5F3EF]">
+              {weekNumber}
+            </span>
+            <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#8E968E]">
+              Week
+            </p>
+          </div>
           <div>
             <span className="font-mono text-[22px] font-semibold text-[#F5F3EF]">
               {String(mockActivities.length).padStart(2, "0")}

@@ -142,7 +142,7 @@ export function AppSidebar() {
       </div>
 
       {/* ─── Navigation Groups ───────────────────────────── */}
-      <div className="flex-1 overflow-y-auto py-1">
+      <div className="flex-1 overflow-y-auto py-1 min-h-0">
         <NavGroup
           label="Work"
           items={workNavItems}
