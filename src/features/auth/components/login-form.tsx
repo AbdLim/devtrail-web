@@ -26,10 +26,19 @@ export function LoginForm() {
   async function onSubmit(data: LoginInput) {
     setServerError(null);
     try {
-      await login(data);
+      const result = await login(data);
       track("login_completed");
       router.refresh();
-      router.push("/dashboard");
+
+      const isProfileComplete =
+        result.user?.is_profile_completed ??
+        result.user?.profileComplete;
+
+      if (isProfileComplete) {
+        router.push("/today");
+      } else {
+        router.push("/complete-profile");
+      }
     } catch (err: unknown) {
       if (isEmailVerificationRequired(err)) {
         router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
@@ -40,15 +49,15 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4 text-left">
       {serverError && (
-        <div role="alert" className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <div role="alert" className="rounded-md border border-[#C98383]/30 bg-[#C98383]/10 px-3 py-2 text-xs text-[#C98383]">
           {serverError}
         </div>
       )}
 
       <div className="space-y-1">
-        <label htmlFor="login-email" className="block text-sm font-medium text-white/80">
+        <label htmlFor="login-email" className="block text-xs font-mono text-[#A3AAA5]">
           Email
         </label>
         <input
@@ -59,10 +68,10 @@ export function LoginForm() {
           placeholder="you@example.com"
           aria-invalid={!!errors.email}
           aria-describedby={errors.email ? "login-email-error" : undefined}
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+          className="w-full rounded-md border border-[#252A28] bg-[#0D0F0F] px-3 py-2 text-xs text-[#F1F0EA] placeholder-[#737A76] transition focus:border-[#91AD9D] focus:outline-none"
         />
         {errors.email && (
-          <p id="login-email-error" role="alert" className="text-xs text-red-400">
+          <p id="login-email-error" role="alert" className="text-xs text-[#C98383]">
             {errors.email.message}
           </p>
         )}
@@ -78,8 +87,8 @@ export function LoginForm() {
       />
 
       <div className="flex items-center justify-between pt-1">
-        <span className="text-xs text-white/40">
-          <button type="button" className="hover:text-white/70 focus:outline-none focus-visible:underline">
+        <span className="text-xs text-[#737A76]">
+          <button type="button" className="hover:text-[#A3AAA5] focus:outline-none">
             Forgot password?
           </button>
         </span>
@@ -89,14 +98,14 @@ export function LoginForm() {
         type="submit"
         id="login-submit"
         disabled={isSubmitting}
-        className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-md bg-[#91AD9D] px-4 py-2.5 text-xs font-semibold text-[#0D0F0F] transition hover:bg-[#B1CCBC] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isSubmitting ? "Signing in..." : "Sign in"}
       </button>
 
-      <p className="text-center text-sm text-white/50">
+      <p className="text-center text-xs text-[#737A76] pt-2 border-t border-[#252A28]">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="text-indigo-400 hover:text-indigo-300 focus:outline-none focus-visible:underline">
+        <Link href="/signup" className="text-[#91AD9D] hover:underline font-medium focus:outline-none">
           Create account
         </Link>
       </p>

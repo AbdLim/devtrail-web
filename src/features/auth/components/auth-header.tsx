@@ -5,10 +5,10 @@ type AuthHeaderProps = {
 
 export function AuthHeader({ title, description }: AuthHeaderProps) {
   return (
-    <div className="mb-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-white">{title}</h1>
+    <div className="mb-6 space-y-1 text-left">
+      <h1 className="text-xl font-semibold tracking-tight text-[#F1F0EA]">{title}</h1>
       {description && (
-        <p className="mt-1 text-sm text-white/60">{description}</p>
+        <p className="text-xs text-[#A3AAA5] leading-relaxed">{description}</p>
       )}
     </div>
   );

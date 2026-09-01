@@ -83,10 +83,20 @@ export function OtpForm({ destination }: OtpFormProps) {
       setServerError(null);
       setSubmitting(true);
       try {
-        await verifyOtp({ email: effectiveEmail, otp: code });
+        const result = await verifyOtp({ email: effectiveEmail, otp: code });
         track("otp_verified");
         toast.success("Email verified successfully!");
-        router.push("/dashboard");
+
+        const isProfileComplete =
+          result.user?.is_profile_completed ??
+          result.user?.profileComplete ??
+          result.profileComplete;
+
+        if (isProfileComplete) {
+          router.push("/today");
+        } else {
+          router.push("/complete-profile");
+        }
       } catch (err) {
         setServerError(getAuthErrorMessage(err));
         setSubmitting(false);
@@ -105,10 +115,10 @@ export function OtpForm({ destination }: OtpFormProps) {
     setServerError(null);
     try {
       const result = await resendOtp(effectiveEmail);
-      setCooldown(result.resendAfter ?? OTP_RESEND_COOLDOWN_SECONDS);
+      setCooldown(OTP_RESEND_COOLDOWN_SECONDS);
       setDigits(Array(OTP_LENGTH).fill(""));
       inputsRef.current[0]?.focus();
-      toast.success(result.message || "A new code has been sent.");
+      toast.success(result.message || "A new 6-digit code has been sent to your email.");
     } catch (err) {
       setServerError(getAuthErrorMessage(err));
     } finally {
@@ -119,13 +129,13 @@ export function OtpForm({ destination }: OtpFormProps) {
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-6">
       {emailParam ? (
-        <p className="text-center text-sm text-white/60">
-          We sent a code to{" "}
-          <span className="font-medium text-white/80">{maskEmail(emailParam)}</span>
+        <p className="text-center text-xs text-[#A3AAA5]">
+          We sent a 6-digit verification code to{" "}
+          <span className="font-mono text-[#F1F0EA] font-medium">{maskEmail(emailParam)}</span>
         </p>
       ) : (
         <div className="space-y-1">
-          <label htmlFor="otp-email" className="block text-sm font-medium text-white/80">
+          <label htmlFor="otp-email" className="block text-xs font-mono text-[#A3AAA5]">
             Email address
           </label>
           <input
@@ -134,13 +144,13 @@ export function OtpForm({ destination }: OtpFormProps) {
             value={inputEmail}
             onChange={(e) => setInputEmail(e.target.value)}
             placeholder="you@example.com"
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+            className="w-full rounded-md border border-[#252A28] bg-[#0D0F0F] px-3 py-2 text-xs text-[#F1F0EA] placeholder-[#737A76] transition focus:border-[#91AD9D] focus:outline-none"
           />
         </div>
       )}
 
       {serverError && (
-        <div role="alert" className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <div role="alert" className="rounded-md border border-[#C98383]/30 bg-[#C98383]/10 px-3 py-2 text-xs text-[#C98383]">
           {serverError}
         </div>
       )}
@@ -164,8 +174,8 @@ export function OtpForm({ destination }: OtpFormProps) {
               onKeyDown={(e) => handleKeyDown(i, e)}
               aria-label={`Digit ${i + 1}`}
               className={cn(
-                "h-12 w-10 rounded-lg border border-white/10 bg-white/5 text-center text-lg font-semibold text-white transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40",
-                serverError && "border-red-500/40",
+                "h-12 w-10 rounded-md border border-[#252A28] bg-[#0D0F0F] text-center text-lg font-mono font-semibold text-[#F1F0EA] transition focus:border-[#91AD9D] focus:outline-none",
+                serverError && "border-[#C98383]/50",
               )}
             />
           ))}
@@ -176,23 +186,23 @@ export function OtpForm({ destination }: OtpFormProps) {
         type="submit"
         id="otp-submit"
         disabled={code.length !== OTP_LENGTH || submitting || !effectiveEmail}
-        className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-md bg-[#91AD9D] px-4 py-2 text-xs font-semibold text-[#0D0F0F] transition hover:bg-[#B1CCBC] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {submitting ? "Verifying..." : "Verify"}
+        {submitting ? "Verifying..." : "Verify OTP"}
       </button>
 
-      <div className="text-center text-sm text-white/50">
+      <div className="text-center text-xs text-[#737A76]">
         {cooldown > 0 ? (
-          <span>Resend code in {formatSeconds(cooldown)}</span>
+          <span className="font-mono">Resend code in {formatSeconds(cooldown)}</span>
         ) : (
           <button
             type="button"
             id="otp-resend"
             onClick={handleResend}
             disabled={resending}
-            className="text-indigo-400 hover:text-indigo-300 focus:outline-none focus-visible:underline disabled:opacity-50"
+            className="text-[#91AD9D] hover:underline focus:outline-none disabled:opacity-50"
           >
-            {resending ? "Sending..." : "Resend code"}
+            {resending ? "Sending..." : "Resend verification code"}
           </button>
         )}
       </div>
