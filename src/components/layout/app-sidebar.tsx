@@ -48,7 +48,7 @@ function NavGroup({
         </div>
       )}
       {collapsed && <div className="h-3" />}
-      {items.map((item) => {
+      {items.map((item, i) => {
         const Icon = item.icon;
         const isActive =
           pathname === item.href ||
@@ -59,13 +59,14 @@ function NavGroup({
             href={item.href}
             title={collapsed ? item.label : undefined}
             className={cn(
-              "group relative flex items-center gap-3 px-3 transition-colors duration-[120ms]",
-              "h-[34px] text-[13px]",
+              "group relative flex items-center gap-3 px-3 transition-all duration-[120ms] hover:bg-[#191E1A] hover:text-[#F4F1E8]",
+              "h-[34px] text-[13px] animate-stagger",
               isActive
                 ? "bg-[#1B211D] text-[#F4F1E8] font-medium"
-                : "text-[#A8AEA8] hover:bg-[#191E1A] hover:text-[#F4F1E8]",
+                : "text-[#A8AEA8]",
               collapsed && "justify-center"
             )}
+            style={{ animationDelay: `${i * 30}ms` }}
           >
             {/* Sage 2px left active marker */}
             {isActive && (
@@ -92,7 +93,7 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "shrink-0 border-r border-[#222823] bg-[#141715] flex flex-col overflow-hidden transition-all duration-200 ease-out z-20",
+        "shrink-0 border-r border-[#222823] bg-[#141715] flex flex-col overflow-hidden transition-all duration-200 ease-out z-20 animate-slide-in-left",
         isSidebarCollapsed ? "w-14" : "w-[216px]"
       )}
     >
@@ -134,7 +135,7 @@ export function AppSidebar() {
             type="button"
             onClick={toggleSidebar}
             title="Collapse sidebar"
-            className="shrink-0 p-1 rounded text-[#8E968E] hover:text-[#F5F3EF] hover:bg-[#191E1A] transition-colors"
+            className="shrink-0 p-1 rounded text-[#8E968E] hover:text-[#F5F3EF] hover:bg-[#191E1A] transition-all duration-[120ms] animate-button-press"
           >
             <PanelLeftClose className="h-[15px] w-[15px] stroke-[1.5px]" />
           </button>
@@ -189,7 +190,7 @@ export function AppSidebar() {
             type="button"
             onClick={toggleSidebar}
             title="Expand sidebar"
-            className="flex w-full items-center justify-center h-8 text-[#8E968E] hover:text-[#F5F3EF] hover:bg-[#191E1A] transition-colors"
+            className="flex w-full items-center justify-center h-8 text-[#8E968E] hover:text-[#F5F3EF] hover:bg-[#191E1A] transition-all duration-[120ms] animate-button-press"
           >
             <PanelLeftOpen className="h-[15px] w-[15px] stroke-[1.5px]" />
           </button>

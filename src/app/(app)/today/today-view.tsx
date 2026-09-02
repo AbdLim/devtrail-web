@@ -101,9 +101,9 @@ function ActivityRow({
       <div className="w-6 shrink-0 flex flex-col items-center">
         <span
           className={cn(
-            "leading-none mt-0.5 transition-all duration-[140ms]",
+            "leading-none mt-0.5 transition-all duration-[130ms]",
             symbol.color,
-            isSelected ? "text-[8px]" : "text-[6px] group-hover:text-[8px]"
+            isSelected ? "text-[8px]" : "text-[6px] group-hover:text-[7px]"
           )}
         >
           {symbol.char}
@@ -114,7 +114,7 @@ function ActivityRow({
       </div>
 
       {/* ─── Content column ───────────────── */}
-      <div className="flex-1 pb-8 pl-3 min-w-0">
+      <div className="flex-1 pb-5 pl-3 min-w-0">
         <button
           type="button"
           onClick={onSelect}
@@ -125,7 +125,17 @@ function ActivityRow({
               : "hover:bg-[#191E1A]/80"
           )}
           style={{
-            transform: isSelected ? "none" : "translateX(0px)",
+            transform: isSelected ? "none" : undefined,
+          }}
+          onMouseEnter={(e) => {
+            if (!isSelected) {
+              e.currentTarget.style.transform = "translateX(2px)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isSelected) {
+              e.currentTarget.style.transform = "translateX(0)";
+            }
           }}
         >
           {/* Type label — crisp mono uppercase colored by source */}
@@ -209,11 +219,11 @@ export function TodayView({ userName }: { userName: string }) {
   }
 
   return (
-    <div className="space-y-0 select-none">
+    <div className="space-y-0 select-none animate-page-enter">
       {/* ─────────────────────────────────────────────────────
           Page Header — asymmetric editorial §18
       ───────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between pb-8">
+      <div className="flex items-start justify-between pb-8 animate-fade-in-up">
         <div className="space-y-1">
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.10em] text-[#8E968E]">
             {dayAbbr} · {monthAbbr} {dayNum}
@@ -229,7 +239,7 @@ export function TodayView({ userName }: { userName: string }) {
         </div>
 
         {/* Asymmetric metrics — right column */}
-        <div className="text-right space-y-1 pt-1">
+        <div className="text-right space-y-1 pt-1 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
           <div>
             <span className="font-mono text-[22px] font-semibold text-[#F5F3EF]">
               {weekNumber}
@@ -260,7 +270,7 @@ export function TodayView({ userName }: { userName: string }) {
       {/* ─────────────────────────────────────────────────────
           GitHub Not Connected notice — §43 compact inline
       ───────────────────────────────────────────────────── */}
-      <div className="border-y border-[#222823] py-3.5 mb-8 flex items-center justify-between gap-4">
+      <div className="border-y border-[#222823] py-3.5 mb-8 flex items-center justify-between gap-4 animate-fade-in-up" style={{ animationDelay: '120ms' }}>
         <div>
           <p className="text-[13px] text-[#F5F3EF] font-medium">GitHub is not connected</p>
           <p className="font-mono text-[11px] text-[#8E968E] mt-0.5">
@@ -269,7 +279,7 @@ export function TodayView({ userName }: { userName: string }) {
         </div>
         <Link
           href="/settings/integrations"
-          className="shrink-0 inline-flex items-center gap-1.5 h-[32px] rounded-[6px] bg-[#151916] border border-[#2B332D] px-3 text-[13px] font-medium text-[#99B9A3] hover:bg-[#191E1A] hover:border-[#99B9A3]/40 transition-colors duration-[130ms]"
+          className="shrink-0 inline-flex items-center gap-1.5 h-[32px] rounded-[6px] bg-[#151916] border border-[#2B332D] px-3 text-[13px] font-medium text-[#99B9A3] hover:bg-[#191E1A] hover:border-[#99B9A3]/40 transition-all duration-[130ms] animate-button-press"
         >
           Connect GitHub →
         </Link>
@@ -278,15 +288,16 @@ export function TodayView({ userName }: { userName: string }) {
       {/* ─────────────────────────────────────────────────────
           Activity River — §20-27
       ───────────────────────────────────────────────────── */}
-      <div className="space-y-0">
+      <div className="space-y-0 stagger-children">
         {mockActivities.map((item, i) => (
-          <ActivityRow
-            key={item.id}
-            item={item}
-            isSelected={inspector.isOpen && inspector.data?.title === item.title}
-            onSelect={() => handleSelectActivity(item)}
-            isLast={i === mockActivities.length - 1}
-          />
+          <div key={item.id} className="animate-stagger" style={{ animationDelay: `${i * 30}ms` }}>
+            <ActivityRow
+              item={item}
+              isSelected={inspector.isOpen && inspector.data?.title === item.title}
+              onSelect={() => handleSelectActivity(item)}
+              isLast={i === mockActivities.length - 1}
+            />
+          </div>
         ))}
       </div>
 
@@ -298,7 +309,7 @@ export function TodayView({ userName }: { userName: string }) {
       {/* ─────────────────────────────────────────────────────
           Daily Memory — §33-35, editorial treatment
       ───────────────────────────────────────────────────── */}
-      <div className="space-y-5 pb-12">
+      <div className="space-y-5 pb-12 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
         {/* Eyebrow — violet for AI/memory */}
         <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#958BB3]">
           Memory · {monthAbbr} {dayNum}

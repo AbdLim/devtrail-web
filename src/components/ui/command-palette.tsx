@@ -96,18 +96,18 @@ export function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-start justify-center"
+      className="fixed inset-0 z-[60] flex items-start justify-center animate-fade-in-up"
       style={{ paddingTop: "12vh" }}
     >
       {/* Scrim */}
       <div
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-black/50 animate-fade-in-up"
         onClick={() => { setCommandPaletteOpen(false); setQuery(""); }}
         aria-hidden="true"
       />
 
       {/* Palette — §41 */}
-      <div className="relative w-[580px] rounded-[10px] border border-[#303832] bg-[#121612] shadow-[0_24px_64px_rgba(0,0,0,0.5)] overflow-hidden">
+      <div className="relative w-[580px] rounded-[10px] border border-[#303832] bg-[#121612] shadow-[0_24px_64px_rgba(0,0,0,0.5)] overflow-hidden animate-scale-in">
         {/* Search row */}
         <div className="flex items-center gap-3 border-b border-[#222823] px-4 h-[48px]">
           <Search className="h-[14px] w-[14px] text-[#8E968E] shrink-0 stroke-[1.5px]" />

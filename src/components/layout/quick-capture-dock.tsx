@@ -116,7 +116,7 @@ export function QuickCaptureDock() {
 
             {/* ─── Expanded ───────────────────────── */}
             {isCaptureOpen && (
-              <div className="p-3 space-y-2">
+              <div className="p-3 space-y-2 animate-fade-in-up">
                 {/* Metadata row */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -179,7 +179,7 @@ export function QuickCaptureDock() {
                       id="quick-capture-save"
                       onClick={handleSave}
                       disabled={!text.trim()}
-                      className="flex items-center gap-1.5 h-[28px] rounded-[6px] bg-[#1B211D] border border-[#2B332D] px-3 font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-[#99B9A3] hover:bg-[#222823] hover:border-[#99B9A3]/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      className="flex items-center gap-1.5 h-[28px] rounded-[6px] bg-[#1B211D] border border-[#2B332D] px-3 font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-[#99B9A3] hover:bg-[#222823] hover:border-[#99B9A3]/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-[120ms] animate-button-press"
                     >
                       Save
                       <kbd className="text-[9px] text-[#8AA792]">⌘↵</kbd>

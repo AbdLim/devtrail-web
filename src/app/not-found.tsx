@@ -3,7 +3,7 @@ import { Home, Search, Calendar } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-[#090B0A]">
+    <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-[#090B0A] animate-fade-in-up">
       <div className="text-center max-w-md">
         {/* Error code */}
         <p className="font-mono text-[72px] font-semibold text-[#F5F3EF] leading-none tracking-tight">
@@ -21,17 +21,17 @@ export default function NotFound() {
         </p>
 
         {/* Quick actions */}
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
           <Link
             href="/today"
-            className="inline-flex items-center gap-2 h-[36px] px-4 rounded-[6px] bg-[#151916] border border-[#2B332D] text-[13px] font-medium text-[#99B9A3] hover:bg-[#191E1A] hover:border-[#99B9A3]/40 transition-colors"
+            className="inline-flex items-center gap-2 h-[36px] px-4 rounded-[6px] bg-[#151916] border border-[#2B332D] text-[13px] font-medium text-[#99B9A3] hover:bg-[#191E1A] hover:border-[#99B9A3]/40 transition-all duration-[130ms] animate-button-press"
           >
             <Calendar className="h-[14px] w-[14px] stroke-[1.5px]" />
             Go to Today
           </Link>
           <Link
             href="/search"
-            className="inline-flex items-center gap-2 h-[36px] px-4 rounded-[6px] border border-transparent text-[13px] font-medium text-[#8E968E] hover:text-[#F5F3EF] hover:bg-[#191E1A] transition-colors"
+            className="inline-flex items-center gap-2 h-[36px] px-4 rounded-[6px] border border-transparent text-[13px] font-medium text-[#8E968E] hover:text-[#F5F3EF] hover:bg-[#191E1A] transition-all duration-[130ms] animate-button-press"
           >
             <Search className="h-[14px] w-[14px] stroke-[1.5px]" />
             Search Memory

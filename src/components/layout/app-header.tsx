@@ -53,7 +53,7 @@ export function UserMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         title={displayName}
-        className="flex h-[28px] w-[28px] items-center justify-center rounded-[6px] bg-[#151916] border border-[#222823] font-mono text-[11px] font-medium text-[#F4F1E8] hover:border-[#99B9A3]/50 hover:text-[#99B9A3] transition-colors focus:outline-none"
+        className="flex h-[28px] w-[28px] items-center justify-center rounded-[6px] bg-[#151916] border border-[#222823] font-mono text-[11px] font-medium text-[#F4F1E8] hover:border-[#99B9A3]/50 hover:text-[#99B9A3] transition-all duration-[120ms] animate-button-press"
       >
         {initials}
       </button>
@@ -67,7 +67,7 @@ export function UserMenu() {
           />
           <div
             role="menu"
-            className="absolute right-0 z-50 mt-1.5 w-52 rounded-[8px] border border-[#222823] bg-[#101311] py-1 shadow-xl"
+            className="absolute right-0 z-50 mt-1.5 w-52 rounded-[8px] border border-[#222823] bg-[#101311] py-1 shadow-xl animate-dropdown"
           >
             <div className="border-b border-[#1B201C] px-3 py-2">
               <p className="truncate text-[13px] font-medium text-[#F4F1E8]">
@@ -112,21 +112,21 @@ export function AppHeader() {
   const { setCommandPaletteOpen } = useWorkbenchStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between border-b border-[#222823] bg-[#121514] px-4 md:px-5">
+    <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between border-b border-[#222823] bg-[#121514] px-4 md:px-5 animate-slide-in-left">
       {/* ─── Breadcrumb ────────────────────────── */}
-      <div className="flex items-center gap-1.5 font-mono text-[12px] text-[#8E968E] select-none">
+      <div className="flex items-center gap-1.5 font-mono text-[12px] text-[#8E968E] select-none animate-fade-in-up" style={{ animationDelay: '50ms' }}>
         <span>DevTrail</span>
         <span className="text-[#6E766E]">/</span>
         <span className="text-[#F5F3EF] font-medium">{sectionTitle}</span>
       </div>
 
       {/* ─── Right Actions ─────────────────────── */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
         {/* Search / Commands control — §16 */}
         <button
           type="button"
           onClick={() => setCommandPaletteOpen(true)}
-          className="flex h-[30px] items-center gap-2 rounded-[6px] border border-[#2B332D] bg-[#151916] px-2.5 font-mono text-[12px] text-[#8E968E] hover:border-[#38423A] hover:text-[#F5F3EF] transition-colors duration-[120ms]"
+          className="flex h-[30px] items-center gap-2 rounded-[6px] border border-[#2B332D] bg-[#151916] px-2.5 font-mono text-[12px] text-[#8E968E] hover:border-[#38423A] hover:text-[#F5F3EF] transition-all duration-[120ms] animate-button-press"
         >
           <Search className="h-[13px] w-[13px] stroke-[1.5px] shrink-0 text-[#8E968E]" />
           <span className="hidden sm:inline">Search / Commands</span>
