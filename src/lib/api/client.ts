@@ -12,7 +12,7 @@ function getCookie(name: string): string | null {
 
 function setCookie(name: string, value: string, maxAge = 60 * 60 * 24 * 30) {
   if (typeof document === "undefined") return;
-  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=None;Secure`;
 }
 
 let isRefreshing = false;
