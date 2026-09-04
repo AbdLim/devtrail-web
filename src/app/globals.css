@@ -4,14 +4,14 @@
   --font-sans: var(--font-sans), "Instrument Sans", Inter, system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-mono), "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
 
-  /* ─── Canvas & Surface Layers ────────────────────── */
+  /* ─── Canvas & Elevated Surface Layers ───────────── */
   --color-canvas: #090B0A;
-  --color-sidebar: #0C0F0D;
-  --color-topbar: #0B0E0C;
-  --color-surface: #101311;
-  --color-surface-raised: #151916;
-  --color-surface-hover: #191E1A;
-  --color-surface-selected: #1B211D;
+  --color-sidebar: #121613;          /* Elevated lighter than canvas */
+  --color-topbar: #121613;           /* Elevated lighter than canvas */
+  --color-surface: #171C18;
+  --color-surface-raised: #1C221D;
+  --color-surface-hover: #222A23;
+  --color-surface-selected: #263028;
 
   /* ─── Borders ─────────────────────────────────────── */
   --color-border: #222823;

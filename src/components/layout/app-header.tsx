@@ -112,7 +112,7 @@ export function AppHeader() {
   const { setCommandPaletteOpen } = useWorkbenchStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between border-b border-[#222823] bg-[#121514] px-4 md:px-5 animate-slide-in-left">
+    <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between border-b border-[#222823] bg-[#121613] px-4 md:px-5 animate-slide-in-left">
       {/* ─── Breadcrumb ────────────────────────── */}
       <div className="flex items-center gap-1.5 font-mono text-[12px] text-[#8E968E] select-none animate-fade-in-up" style={{ animationDelay: '50ms' }}>
         <span>DevTrail</span>
