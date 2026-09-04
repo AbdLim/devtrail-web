@@ -81,13 +81,19 @@ type RequestOptions = Omit<RequestInit, "body"> & {
 export async function apiClient<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { body, signal, headers, retryOnUnauthorized = true, ...rest } = options;
 
+  const fullUrl = `${BASE_URL}${path}`;
   const token = getCookie("access_token") || getCookie("token") || getCookie("session");
   const authHeaders: Record<string, string> = {};
   if (token) {
     authHeaders["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, {
+  console.log(`[API CLIENT] Sending ${options.method || "GET"} request to:`, fullUrl, {
+    hasToken: !!token,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  const res = await fetch(fullUrl, {
     ...rest,
     credentials: "include",
     signal,
@@ -99,13 +105,22 @@ export async function apiClient<T>(path: string, options: RequestOptions = {}): 
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   }).catch((err: unknown) => {
+    console.error(`[API CLIENT] Fetch network error for ${fullUrl}:`, err);
     if (err instanceof Error && err.name === "AbortError") throw err;
     throw new ApiError("Network request failed. Check your connection.", 0);
   });
 
+  console.log(`[API CLIENT] Received response for ${fullUrl}:`, {
+    status: res.status,
+    statusText: res.statusText,
+    ok: res.ok,
+  });
+
   if (res.status === 401 && retryOnUnauthorized && path !== endpoints.auth.login && path !== endpoints.auth.refreshToken) {
+    console.warn(`[API CLIENT] 401 received for ${fullUrl}, attempting token refresh...`);
     const newToken = await refreshAccessToken();
     if (newToken) {
+      console.log(`[API CLIENT] Token refresh succeeded, retrying request to ${fullUrl}`);
       return apiClient<T>(path, {
         ...options,
         retryOnUnauthorized: false,

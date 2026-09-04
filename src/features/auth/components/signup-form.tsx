@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -21,28 +21,55 @@ export function SignupForm() {
     formState: { errors, isSubmitting },
   } = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
+    defaultValues: {
+      firstname: "",
+      lastname: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
   async function onSubmit(data: SignupInput) {
+    console.log("[SIGNUP FORM] Submit handler triggered with data:", {
+      firstname: data.firstname,
+      lastname: data.lastname,
+      email: data.email,
+      password: "***",
+      terms: data.terms,
+    });
     setServerError(null);
+
     try {
       track("signup_started");
-      await signup({
+      const res = await signup({
         firstname: data.firstname,
         lastname: data.lastname,
         age: typeof data.age === "number" ? data.age : undefined,
         email: data.email,
         password: data.password,
       });
+      console.log("[SIGNUP FORM] Signup successful, navigating to verify OTP:", res);
       track("signup_completed");
       router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
     } catch (err) {
-      setServerError(getAuthErrorMessage(err));
+      console.error("[SIGNUP FORM] Signup submit error caught:", err);
+      const errMsg = getAuthErrorMessage(err);
+      console.error("[SIGNUP FORM] Formatted error message:", errMsg);
+      setServerError(errMsg);
     }
   }
 
+  function onInvalid(formErrors: FieldErrors<SignupInput>) {
+    console.warn("[SIGNUP FORM] Zod Client Validation Failed. Form errors:", formErrors);
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4 text-left">
+    <form
+      onSubmit={handleSubmit(onSubmit, onInvalid)}
+      noValidate
+      className="space-y-4 text-left"
+    >
       {serverError && (
         <div role="alert" className="rounded-md border border-[#C98383]/30 bg-[#C98383]/10 px-3 py-2 text-xs text-[#C98383]">
           {serverError}
