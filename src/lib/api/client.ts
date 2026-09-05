@@ -3,6 +3,7 @@ import { ApiError } from "./api-error";
 import { endpoints } from "./endpoints";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+const DEFAULT_TIMEOUT_MS = 15000; // 15 seconds timeout
 
 function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
@@ -76,10 +77,11 @@ type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
   signal?: AbortSignal;
   retryOnUnauthorized?: boolean;
+  timeoutMs?: number;
 };
 
 export async function apiClient<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { body, signal, headers, retryOnUnauthorized = true, ...rest } = options;
+  const { body, signal: userSignal, headers, retryOnUnauthorized = true, timeoutMs = DEFAULT_TIMEOUT_MS, ...rest } = options;
 
   const fullUrl = `${BASE_URL}${path}`;
   const token = getCookie("access_token") || getCookie("token") || getCookie("session");
@@ -88,45 +90,61 @@ export async function apiClient<T>(path: string, options: RequestOptions = {}): 
     authHeaders["Authorization"] = `Bearer ${token}`;
   }
 
+  // Create timeout controller if user didn't provide custom signal
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  const signal = userSignal || controller.signal;
+
   console.log(`[API CLIENT] Sending ${options.method || "GET"} request to:`, fullUrl, {
     hasToken: !!token,
     body: body ? JSON.stringify(body) : undefined,
+    timeoutMs,
   });
 
-  const res = await fetch(fullUrl, {
-    ...rest,
-    credentials: "include",
-    signal,
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...authHeaders,
-      ...headers,
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  }).catch((err: unknown) => {
-    console.error(`[API CLIENT] Fetch network error for ${fullUrl}:`, err);
-    if (err instanceof Error && err.name === "AbortError") throw err;
-    throw new ApiError("Network request failed. Check your connection.", 0);
-  });
+  try {
+    const res = await fetch(fullUrl, {
+      ...rest,
+      credentials: "include",
+      signal,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...authHeaders,
+        ...headers,
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
 
-  console.log(`[API CLIENT] Received response for ${fullUrl}:`, {
-    status: res.status,
-    statusText: res.statusText,
-    ok: res.ok,
-  });
+    clearTimeout(timeoutId);
 
-  if (res.status === 401 && retryOnUnauthorized && path !== endpoints.auth.login && path !== endpoints.auth.refreshToken) {
-    console.warn(`[API CLIENT] 401 received for ${fullUrl}, attempting token refresh...`);
-    const newToken = await refreshAccessToken();
-    if (newToken) {
-      console.log(`[API CLIENT] Token refresh succeeded, retrying request to ${fullUrl}`);
-      return apiClient<T>(path, {
-        ...options,
-        retryOnUnauthorized: false,
-      });
+    console.log(`[API CLIENT] Received response for ${fullUrl}:`, {
+      status: res.status,
+      statusText: res.statusText,
+      ok: res.ok,
+    });
+
+    if (res.status === 401 && retryOnUnauthorized && path !== endpoints.auth.login && path !== endpoints.auth.refreshToken) {
+      console.warn(`[API CLIENT] 401 received for ${fullUrl}, attempting token refresh...`);
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        console.log(`[API CLIENT] Token refresh succeeded, retrying request to ${fullUrl}`);
+        return apiClient<T>(path, {
+          ...options,
+          retryOnUnauthorized: false,
+        });
+      }
     }
-  }
 
-  return parseResponse<T>(res);
+    return parseResponse<T>(res);
+  } catch (err: unknown) {
+    clearTimeout(timeoutId);
+    console.error(`[API CLIENT] Fetch network/timeout error for ${fullUrl}:`, err);
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new ApiError(`Request to ${path} timed out after ${timeoutMs / 1000}s. The backend server did not respond.`, 408);
+    }
+    throw new ApiError("Network request failed. Check your connection.", 0);
+  }
 }
