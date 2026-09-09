@@ -3,98 +3,51 @@
 import { useWorkbenchStore, type InspectorData } from "@/stores/use-workbench-store";
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
-
-/* ─── Types ──────────────────────────────────────────── */
-type ActivityKind = "github" | "manual" | "ai";
-
-type ActivityItem = {
-  id: string;
-  time: string;
-  kind: ActivityKind;
-  label: string;          // e.g. "MERGED", "COMMITS · 4", "LEARNING"
-  title: string;
-  project: string;
-  meta: string;           // e.g. "PR #184 · TYPESCRIPT · REDIS"
-  description?: string;
-  tags?: string[];
-  url?: string;
-};
+import { useActivities } from "@/features/activities/hooks/use-activities";
+import type { Activity } from "@/features/activities/types/activity.types";
+import { useProjects } from "@/features/projects/hooks/use-projects";
+import { useInstallations } from "@/features/github/hooks/use-installations";
+import { Plus, Activity as ActivityIcon } from "lucide-react";
 
 /* ─── Symbols per source type ─────────────────────────── */
-const SYMBOLS: Record<ActivityKind, { char: string; color: string }> = {
+const SYMBOLS: Record<string, { char: string; color: string }> = {
   github: { char: "●", color: "text-[#99B9A3]" },
   manual: { char: "◇", color: "text-[#C3AA78]" },
   ai:     { char: "✦", color: "text-[#9C92BA]" },
 };
 
-/* ─── Demo data ───────────────────────────────────────── */
-const mockActivities: ActivityItem[] = [
-  {
-    id: "a1",
-    time: "09:14",
-    kind: "github",
-    label: "MERGED",
-    title: "Fix authentication refresh race condition",
-    project: "Curri API",
-    meta: "PR #184 · TYPESCRIPT · REDIS",
-    description: "Resolved single-flight locking issue during token rotation under high concurrency.",
-    tags: ["TypeScript", "Redis", "Authentication"],
-    url: "https://github.com/org/repo/pull/184",
-  },
-  {
-    id: "a2",
-    time: "10:32",
-    kind: "github",
-    label: "COMMITS · 4",
-    title: "Redis caching improvements",
-    project: "Curri API",
-    meta: "4 COMMITS · 7 FILES",
-    description: "Added Redis cache layer for user profiles with TTL invalidation on updates.",
-    tags: ["Redis", "Performance"],
-  },
-  {
-    id: "a3",
-    time: "13:08",
-    kind: "manual",
-    label: "LEARNING",
-    title: "Refresh requests should use single-flight locking",
-    project: "DevTrail",
-    meta: "Manual note",
-    description: "Documented the pattern for handling concurrent token refreshes across server instances without thundering herd.",
-    tags: ["Architecture", "Security"],
-  },
-  {
-    id: "a4",
-    time: "16:42",
-    kind: "github",
-    label: "ISSUE CLOSED",
-    title: "Remove duplicate cache invalidation on user profile update",
-    project: "Curri API",
-    meta: "#142 · POSTGRESQL",
-    description: "Cleaned up redundant database triggers firing duplicate cache resets.",
-    tags: ["PostgreSQL", "Cleanup"],
-  },
-];
-
 /* ─── Activity River Item ─────────────────────────────── */
 function ActivityRow({
-  item,
+  activity,
   isSelected,
   onSelect,
   isLast,
 }: {
-  item: ActivityItem;
+  activity: Activity;
   isSelected: boolean;
   onSelect: () => void;
   isLast: boolean;
 }) {
-  const symbol = SYMBOLS[item.kind];
+  const symbol = SYMBOLS[activity.source] || SYMBOLS.manual;
+
+  // Format occurredAt time (HH:mm)
+  const occurredDate = new Date(activity.occurredAt);
+  const formattedTime = isNaN(occurredDate.getTime())
+    ? "09:00"
+    : occurredDate.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+
+  const eventLabel = (activity.eventType || activity.source).toUpperCase();
+  const repoName = activity.metadata?.repositoryName || "";
 
   return (
     <div className="flex gap-0">
       {/* ─── Time column — high legibility muted font ── */}
       <div className="w-[56px] shrink-0 pt-[3px]">
-        <span className="font-mono text-[12px] text-[#8E968E] font-medium">{item.time}</span>
+        <span className="font-mono text-[12px] text-[#8E968E] font-medium">{formattedTime}</span>
       </div>
 
       {/* ─── Marker + connector line column ── */}
@@ -108,9 +61,7 @@ function ActivityRow({
         >
           {symbol.char}
         </span>
-        {!isLast && (
-          <div className="w-px flex-1 mt-1 mb-0 bg-[#252C26]" />
-        )}
+        {!isLast && <div className="w-px flex-1 mt-1 mb-0 bg-[#252C26]" />}
       </div>
 
       {/* ─── Content column ───────────────── */}
@@ -120,57 +71,42 @@ function ActivityRow({
           onClick={onSelect}
           className={cn(
             "w-full text-left rounded-[6px] px-3 py-2.5 -ml-3 transition-all duration-[140ms] group",
-            isSelected
-              ? "bg-[#1B211D]"
-              : "hover:bg-[#191E1A]/80"
+            isSelected ? "bg-[#1B211D]" : "hover:bg-[#191E1A]/80"
           )}
-          style={{
-            transform: isSelected ? "none" : undefined,
-          }}
-          onMouseEnter={(e) => {
-            if (!isSelected) {
-              e.currentTarget.style.transform = "translateX(2px)";
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isSelected) {
-              e.currentTarget.style.transform = "translateX(0)";
-            }
-          }}
         >
           {/* Type label — crisp mono uppercase colored by source */}
           <div className="mb-1.5">
             <span
               className={cn(
                 "font-mono text-[11px] font-semibold uppercase tracking-[0.10em]",
-                item.kind === "github" && "text-[#8AA792]",
-                item.kind === "manual" && "text-[#A6926A]",
-                item.kind === "ai" && "text-[#958BB3]"
+                activity.source === "github" && "text-[#8AA792]",
+                activity.source === "manual" && "text-[#A6926A]",
+                activity.source === "ai" && "text-[#958BB3]"
               )}
             >
-              {item.label}
+              {eventLabel}
             </span>
           </div>
 
-          {/* Activity title — 15px / 600 high contrast */}
+          {/* Activity title */}
           <p
             className={cn(
               "text-[15px] font-semibold leading-[1.35] transition-colors duration-[120ms]",
-              isSelected
-                ? "text-[#F5F3EF]"
-                : "text-[#D5DCD5] group-hover:text-[#F5F3EF]"
+              isSelected ? "text-[#F5F3EF]" : "text-[#D5DCD5] group-hover:text-[#F5F3EF]"
             )}
           >
-            {item.title}
+            {activity.title}
           </p>
 
-          {/* Project + metadata — mono 11px clear text */}
-          <p className="mt-1 font-mono text-[11px] text-[#8E968E] uppercase tracking-[0.02em]">
-            <span className="text-[#C4CCC4] font-medium">{item.project}</span>
-            {item.meta && (
-              <span className="text-[#8E968E]"> · {item.meta}</span>
-            )}
-          </p>
+          {/* Project / Repo metadata */}
+          {(repoName || activity.externalId) && (
+            <p className="mt-1 font-mono text-[11px] text-[#8E968E] uppercase tracking-[0.02em]">
+              {repoName && <span className="text-[#C4CCC4] font-medium">{repoName}</span>}
+              {activity.externalId && (
+                <span className="text-[#8E968E]"> · {activity.externalId.slice(0, 8)}</span>
+              )}
+            </p>
+          )}
         </button>
       </div>
     </div>
@@ -179,15 +115,18 @@ function ActivityRow({
 
 /* ─── Today Page ──────────────────────────────────────── */
 export function TodayView({ userName }: { userName: string }) {
-  const { inspector, openInspector, closeInspector } = useWorkbenchStore();
+  const { inspector, openInspector, closeInspector, openCapture } = useWorkbenchStore();
+
+  // Real backend queries
+  const { data: activities = [], isLoading: loadingActivities } = useActivities();
+  const { data: projects = [] } = useProjects();
+  const { data: installations = [] } = useInstallations();
+
+  const isGitHubConnected = installations.length > 0;
 
   const today = new Date();
-  const dayAbbr = today
-    .toLocaleDateString("en-US", { weekday: "short" })
-    .toUpperCase();
-  const monthAbbr = today
-    .toLocaleDateString("en-US", { month: "short" })
-    .toUpperCase();
+  const dayAbbr = today.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase();
+  const monthAbbr = today.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
   const dayNum = today.getDate().toString().padStart(2, "0");
 
   // Calculate week number
@@ -195,24 +134,22 @@ export function TodayView({ userName }: { userName: string }) {
   const days = Math.floor((today.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
   const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
 
-  function handleSelectActivity(item: ActivityItem) {
-    if (inspector.isOpen && inspector.data?.title === item.title) {
+  function handleSelectActivity(activity: Activity) {
+    if (inspector.isOpen && inspector.data?.title === activity.title) {
       closeInspector();
       return;
     }
     const data: InspectorData = {
-      title: item.title,
-      subtitle: `${item.label} · ${item.project}`,
-      type: item.kind === "github" ? "evidence" : "note",
+      title: activity.title,
+      subtitle: `${activity.eventType.toUpperCase()} · ${activity.source}`,
+      type: activity.source === "github" ? "evidence" : "note",
       data: {
-        description: item.description,
-        project: item.project,
-        repo: item.project.toLowerCase().replace(/\s+/g, "-"),
-        timestamp: `${monthAbbr} ${dayNum} · ${item.time}`,
-        tags: item.tags,
-        url: item.url,
-        label: item.label,
-        meta: item.meta,
+        description: activity.description,
+        project: activity.projectId,
+        repo: activity.metadata?.repositoryName,
+        timestamp: `${monthAbbr} ${dayNum} · ${new Date(activity.occurredAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}`,
+        url: activity.url,
+        label: activity.eventType.toUpperCase(),
       },
     };
     openInspector(data);
@@ -228,41 +165,31 @@ export function TodayView({ userName }: { userName: string }) {
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.10em] text-[#8E968E]">
             {dayAbbr} · {monthAbbr} {dayNum}
           </p>
-          <h1
-            className="text-[32px] font-semibold leading-[1.1] tracking-[-0.035em] text-[#F5F3EF]"
-          >
+          <h1 className="text-[32px] font-semibold leading-[1.1] tracking-[-0.035em] text-[#F5F3EF]">
             Today
           </h1>
           <p className="font-mono text-[12px] text-[#8E968E] uppercase tracking-[0.05em]">
-            Curri AI · DevTrail
+            DevTrail Activity River
           </p>
         </div>
 
         {/* Asymmetric metrics — right column */}
-        <div className="text-right space-y-1 pt-1 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+        <div className="text-right space-y-1 pt-1 animate-fade-in-up" style={{ animationDelay: "80ms" }}>
           <div>
-            <span className="font-mono text-[22px] font-semibold text-[#F5F3EF]">
-              {weekNumber}
-            </span>
-            <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#8E968E]">
-              Week
-            </p>
+            <span className="font-mono text-[22px] font-semibold text-[#F5F3EF]">{weekNumber}</span>
+            <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#8E968E]">Week</p>
           </div>
           <div>
             <span className="font-mono text-[22px] font-semibold text-[#F5F3EF]">
-              {String(mockActivities.length).padStart(2, "0")}
+              {String(activities.length).padStart(2, "0")}
             </span>
-            <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#8E968E]">
-              Events
-            </p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#8E968E]">Events</p>
           </div>
           <div className="pt-1">
             <span className="font-mono text-[22px] font-semibold text-[#F5F3EF]">
-              02
+              {String(projects.length).padStart(2, "0")}
             </span>
-            <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#8E968E]">
-              Projects
-            </p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#8E968E]">Projects</p>
           </div>
         </div>
       </div>
@@ -270,91 +197,88 @@ export function TodayView({ userName }: { userName: string }) {
       {/* ─────────────────────────────────────────────────────
           GitHub Not Connected notice — §43 compact inline
       ───────────────────────────────────────────────────── */}
-      <div className="border-y border-[#222823] py-3.5 mb-8 flex items-center justify-between gap-4 animate-fade-in-up" style={{ animationDelay: '120ms' }}>
-        <div>
-          <p className="text-[13px] text-[#F5F3EF] font-medium">GitHub is not connected</p>
-          <p className="font-mono text-[11px] text-[#8E968E] mt-0.5">
-            Bring commits, pull requests, issues, and releases into your activity river.
-          </p>
-        </div>
-        <Link
-          href="/settings/integrations"
-          className="shrink-0 inline-flex items-center gap-1.5 h-[32px] rounded-[6px] bg-[#151916] border border-[#2B332D] px-3 text-[13px] font-medium text-[#99B9A3] hover:bg-[#191E1A] hover:border-[#99B9A3]/40 transition-all duration-[130ms] animate-button-press"
-        >
-          Connect GitHub →
-        </Link>
-      </div>
-
-      {/* ─────────────────────────────────────────────────────
-          Activity River — §20-27
-      ───────────────────────────────────────────────────── */}
-      <div className="space-y-0 stagger-children">
-        {mockActivities.map((item, i) => (
-          <div key={item.id} className="animate-stagger" style={{ animationDelay: `${i * 30}ms` }}>
-            <ActivityRow
-              item={item}
-              isSelected={inspector.isOpen && inspector.data?.title === item.title}
-              onSelect={() => handleSelectActivity(item)}
-              isLast={i === mockActivities.length - 1}
-            />
+      {!isGitHubConnected && (
+        <div className="border-y border-[#222823] py-3.5 mb-8 flex items-center justify-between gap-4 animate-fade-in-up" style={{ animationDelay: "120ms" }}>
+          <div>
+            <p className="text-[13px] text-[#F5F3EF] font-medium">GitHub is not connected</p>
+            <p className="font-mono text-[11px] text-[#8E968E] mt-0.5">
+              Bring commits, pull requests, issues, and releases into your activity river.
+            </p>
           </div>
-        ))}
-      </div>
+          <Link
+            href="/connect-github"
+            className="shrink-0 inline-flex items-center gap-1.5 h-[32px] rounded-[6px] bg-[#151916] border border-[#2B332D] px-3 text-[13px] font-medium text-[#99B9A3] hover:bg-[#191E1A] hover:border-[#99B9A3]/40 transition-all duration-[130ms]"
+          >
+            Connect GitHub →
+          </Link>
+        </div>
+      )}
 
       {/* ─────────────────────────────────────────────────────
-          Section Divider
+          Activity River — Real Data & Empty State (Railway Spec §58)
       ───────────────────────────────────────────────────── */}
-      <div className="border-t border-[#222823] my-10" />
-
-      {/* ─────────────────────────────────────────────────────
-          Daily Memory — §33-35, editorial treatment
-      ───────────────────────────────────────────────────── */}
-      <div className="space-y-5 pb-12 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-        {/* Eyebrow — violet for AI/memory */}
-        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#958BB3]">
-          Memory · {monthAbbr} {dayNum}
-        </p>
-
-        {/* Summary paragraph */}
-        <p className="text-[15px] font-medium leading-[1.6] text-[#E0E5E0] max-w-xl">
-          Improved authentication reliability and Redis-backed session caching across backend services.
-          Documented a single-flight approach to prevent thundering herd on concurrent token rotation.
-        </p>
-
-        {/* Highlights — numbered editorial list */}
-        <div className="space-y-2 pt-2">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.10em] text-[#8E968E]">
-            Highlights
-          </p>
-          {[
-            "Authentication race condition fixed",
-            "Redis caching improved and invalidation standardised",
-            "Cache invalidation issue closed",
-          ].map((h, i) => (
-            <div key={h} className="flex items-start gap-3 text-[13px] text-[#C4CCC4]">
-              <span className="font-mono text-[11px] text-[#8E968E] shrink-0 mt-0.5">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="leading-[1.5]">{h}</span>
+      {loadingActivities ? (
+        <div className="space-y-3 py-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-12 w-full rounded bg-[#121613]/50 animate-pulse" />
+          ))}
+        </div>
+      ) : activities.length > 0 ? (
+        <div className="space-y-0 stagger-children">
+          {activities.map((item, i) => (
+            <div key={item.id} className="animate-stagger" style={{ animationDelay: `${i * 30}ms` }}>
+              <ActivityRow
+                activity={item}
+                isSelected={inspector.isOpen && inspector.data?.title === item.title}
+                onSelect={() => handleSelectActivity(item)}
+                isLast={i === activities.length - 1}
+              />
             </div>
           ))}
         </div>
-
-        {/* Learning */}
-        <div className="space-y-2 pt-2">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.10em] text-[#8E968E]">
-            Learning
-          </p>
-          <p className="text-[13px] text-[#F5F3EF] leading-[1.6] font-medium max-w-md">
-            Refresh requests should use single-flight locking to prevent concurrent redundant calls.
-          </p>
+      ) : (
+        /* Railway Technical Empty State — spec §58 */
+        <div className="rounded-[8px] border border-[#222823] bg-[#121613] p-10 text-center space-y-3 my-4">
+          <ActivityIcon className="mx-auto h-7 w-7 text-[#8E968E] stroke-[1.2px]" />
+          <div className="space-y-1 max-w-sm mx-auto">
+            <p className="text-[14px] font-medium text-[#F5F3EF]">Nothing recorded today</p>
+            <p className="font-mono text-[11px] text-[#8E968E]">
+              GitHub activity and notes will appear here as your workday unfolds.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={openCapture}
+            className="inline-flex items-center gap-1.5 h-[32px] rounded-[6px] bg-[#171C18] border border-[#222823] px-3.5 font-mono text-[12px] text-[#99B9A3] hover:border-[#99B9A3]/40 transition-colors"
+          >
+            <Plus className="h-[13px] w-[13px] stroke-[1.5px]" />
+            <span>Capture a note →</span>
+          </button>
         </div>
+      )}
 
-        {/* Evidence count footer — mono muted */}
-        <p className="font-mono text-[12px] text-[#8E968E] font-medium pt-2">
-          {String(mockActivities.length).padStart(2, "0")} Evidence Items
-        </p>
-      </div>
+      {/* ─────────────────────────────────────────────────────
+          Daily Memory Section — §33-35
+      ───────────────────────────────────────────────────── */}
+      {activities.length > 0 && (
+        <>
+          <div className="border-t border-[#222823] my-10" />
+
+          <div className="space-y-5 pb-12 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#958BB3]">
+              Memory · {monthAbbr} {dayNum}
+            </p>
+
+            <p className="text-[15px] font-medium leading-[1.6] text-[#E0E5E0] max-w-xl">
+              Captured {activities.length} engineering activity items today.
+            </p>
+
+            <p className="font-mono text-[12px] text-[#8E968E] font-medium pt-2">
+              {String(activities.length).padStart(2, "0")} Evidence Items Recorded
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 }

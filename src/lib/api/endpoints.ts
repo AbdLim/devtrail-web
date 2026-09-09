@@ -14,5 +14,21 @@ export const endpoints = {
     me: "/auth/profile",
     complete: "/auth/profile",
   },
+  projects: {
+    list: "/projects",
+    create: "/projects",
+    detail: (id: string) => `/projects/${id}`,
+    update: (id: string) => `/projects/${id}`,
+    delete: (id: string) => `/projects/${id}`,
+    addRepositories: (id: string) => `/projects/${id}/repositories`,
+    removeRepository: (id: string, repoId: string) => `/projects/${id}/repositories/${repoId}`,
+  },
+  github: {
+    installations: "/github/installations",
+    repositories: "/github/repositories",
+    toggleTracking: (id: string) => `/github/repositories/${id}/tracking`,
+  },
+  activities: {
+    timeline: "/activities/timeline",
+  },
 } as const;
-
