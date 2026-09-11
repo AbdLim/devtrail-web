@@ -7,8 +7,8 @@ import { RepositoryListItem } from "@/features/github/components/repository-list
 import { GitHubConnectCard } from "@/features/github/components/github-connect-card";
 
 export default function IntegrationsSettingsPage() {
-  const { data: installations = [], isLoading: loadingInstallations, refetch } = useInstallations();
-  const { data: repositories = [], isLoading: loadingRepos } = useGitHubRepositories();
+  const { data: installations = [], isLoading: loadingInstallations, isError: installationsError, refetch } = useInstallations();
+  const { data: repositories = [], isLoading: loadingRepos, isError: reposError } = useGitHubRepositories();
 
   const isConnected = installations.length > 0;
 
@@ -71,7 +71,10 @@ export default function IntegrationsSettingsPage() {
                 </div>
 
                 <a
-                  href="https://github.com/apps/devtrail/installations/new"
+                  href={
+                    process.env.NEXT_PUBLIC_GITHUB_APP_URL ||
+                    "https://github.com/apps/devtrail-app-dev/installations/new"
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-mono text-[11px] text-[#99B9A3] hover:underline"
