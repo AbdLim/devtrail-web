@@ -5,5 +5,7 @@ export function useGitHubRepositories() {
   return useQuery({
     queryKey: ["github", "repositories"],
     queryFn: () => getRepositories(),
+    retry: false,
+    staleTime: 30_000,
   });
 }

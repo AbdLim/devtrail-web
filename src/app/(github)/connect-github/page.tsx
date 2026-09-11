@@ -6,6 +6,8 @@ import Link from "next/link";
 import { FolderGit2, ArrowRight, CheckCircle2, RefreshCw, AlertCircle } from "lucide-react";
 import { connectInstallation } from "@/features/github/api/connect-installation";
 import { useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api/client";
+import { endpoints } from "@/lib/api/endpoints";
 
 function ConnectGitHubContent() {
   const searchParams = useSearchParams();
@@ -27,9 +29,32 @@ function ConnectGitHubContent() {
       setError(null);
       try {
         console.log("[GITHUB OAUTH] Connecting installation ID:", installationId);
+
+        // Fetch the user's real GitHub username from their profile
+        let accountLogin = "GitHub User";
+        try {
+          const profileData = await apiClient<Record<string, unknown>>(endpoints.auth.session);
+          const dataEnvelope = (profileData?.data || profileData) as Record<string, unknown>;
+          const userRaw = (dataEnvelope?.user || dataEnvelope) as Record<string, unknown>;
+          const profileRaw = userRaw?.profile as Record<string, unknown> | null | undefined;
+          const githubUsername = profileRaw?.githubUsername as string | undefined;
+          const firstname = (userRaw?.firstname || userRaw?.firstName || "") as string;
+          const lastname = (userRaw?.lastname || userRaw?.lastName || "") as string;
+          // Prefer GitHub username, then full name, then email as fallback
+          accountLogin =
+            githubUsername ||
+            [firstname, lastname].filter(Boolean).join(" ") ||
+            (userRaw?.email as string) ||
+            "GitHub User";
+          console.log("[GITHUB OAUTH] Using accountLogin:", accountLogin);
+        } catch {
+          // Non-fatal — proceed with fallback
+          console.warn("[GITHUB OAUTH] Could not fetch profile for accountLogin, using fallback");
+        }
+
         await connectInstallation({
           installationId: installationId!,
-          accountLogin: "GitHub Account",
+          accountLogin,
           accountType: "User",
           repositories: [],
         });
@@ -74,7 +99,7 @@ function ConnectGitHubContent() {
 
   const githubAppUrl =
     process.env.NEXT_PUBLIC_GITHUB_APP_URL ||
-    "https://github.com/apps/devtrail/installations/new";
+    "https://github.com/apps/devtrail-app-dev/installations/new";
 
   return (
     <div className="mx-auto max-w-md space-y-6 text-center select-none py-8">
