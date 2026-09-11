@@ -77,7 +77,8 @@ export default function ProjectDetailPage({
   }
 
   const projectColor = project.color || "#99B9A3";
-  const existingRepoIds = project.repositories?.map((r) => r.id) || [];
+  const existingRepoIds = (project.repositories || []).map((r) => r.id || (r as any).githubRepoId || (r as any).repositoryId).filter(Boolean);
+
 
   return (
     <div className="space-y-6 select-none">

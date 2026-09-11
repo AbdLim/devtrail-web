@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { X, FolderGit2, Link as LinkIcon } from "lucide-react";
+import Link from "next/link";
+import { X, FolderGit2, Link as LinkIcon, ExternalLink } from "lucide-react";
 import { useGitHubRepositories } from "@/features/github/hooks/use-github-repositories";
 import { useLinkRepositories } from "../hooks/use-link-repositories";
-import type { GitHubRepository } from "@/features/github/types/github.types";
 import { cn } from "@/lib/utils/cn";
 
 export function LinkRepositoriesModal({
   projectId,
-  existingRepoIds,
+  existingRepoIds = [],
   isOpen,
   onClose,
 }: {
@@ -18,13 +18,14 @@ export function LinkRepositoriesModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { data: repositories = [] } = useGitHubRepositories();
+  const { data: repositories = [], isLoading } = useGitHubRepositories();
   const linkMutation = useLinkRepositories();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  const existingSet = new Set(existingRepoIds.filter(Boolean));
   const availableRepos = repositories.filter(
-    (repo) => !existingRepoIds.includes(repo.id)
+    (repo) => !existingSet.has(repo.id) && !existingSet.has(repo.githubRepoId)
   );
 
   function toggle(id: string) {
@@ -53,9 +54,14 @@ export function LinkRepositoriesModal({
 
       <div className="relative w-full max-w-md rounded-[10px] border border-[#222823] bg-[#121613] p-6 shadow-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-[#222823] pb-3">
-          <h3 className="text-[15px] font-semibold text-[#F5F3EF]">
-            Link GitHub Repositories
-          </h3>
+          <div>
+            <h3 className="text-[15px] font-semibold text-[#F5F3EF]">
+              Link GitHub Repositories
+            </h3>
+            <p className="text-[12px] text-[#8E968E]">
+              Select imported repositories to attach to this project.
+            </p>
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -69,7 +75,31 @@ export function LinkRepositoriesModal({
           <p className="text-xs text-[#CB8585]">{error}</p>
         )}
 
-        {availableRepos.length > 0 ? (
+        {isLoading ? (
+          <div className="space-y-2 py-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-10 w-full rounded bg-[#171C18] animate-pulse" />
+            ))}
+          </div>
+        ) : repositories.length === 0 ? (
+          <div className="rounded-[8px] border border-[#222823] bg-[#090B0A] p-6 text-center space-y-3">
+            <FolderGit2 className="mx-auto h-6 w-6 text-[#8E968E] stroke-[1.5px]" />
+            <div className="space-y-1">
+              <p className="text-[13px] font-medium text-[#F5F3EF]">No GitHub repositories found</p>
+              <p className="font-mono text-[11px] text-[#8E968E]">
+                You haven&apos;t connected GitHub or imported repositories yet.
+              </p>
+            </div>
+            <Link
+              href="/settings/integrations"
+              onClick={onClose}
+              className="inline-flex items-center gap-1.5 font-mono text-[11px] text-[#99B9A3] hover:underline"
+            >
+              <span>Connect GitHub in Integrations</span>
+              <ExternalLink className="h-[11px] w-[11px]" />
+            </Link>
+          </div>
+        ) : availableRepos.length > 0 ? (
           <div className="max-h-60 overflow-y-auto space-y-1 rounded-[6px] border border-[#222823] bg-[#090B0A] p-2">
             {availableRepos.map((repo) => {
               const isSelected = selectedIds.includes(repo.id);
@@ -81,13 +111,13 @@ export function LinkRepositoriesModal({
                   className={cn(
                     "w-full flex items-center justify-between px-3 py-2 rounded text-[13px] text-left transition-colors",
                     isSelected
-                      ? "bg-[#171C18] text-[#F5F3EF]"
+                      ? "bg-[#171C18] text-[#F5F3EF] border border-[#99B9A3]/30"
                       : "text-[#C4CCC4] hover:bg-[#121613]"
                   )}
                 >
                   <div className="flex items-center gap-2 truncate">
                     <FolderGit2 className="h-[14px] w-[14px] stroke-[1.5px] text-[#99B9A3]" />
-                    <span className="truncate">{repo.fullName}</span>
+                    <span className="truncate">{repo.fullName || repo.name}</span>
                   </div>
                   <span className="font-mono text-[11px] text-[#8E968E]">
                     {isSelected ? "Selected" : "Select"}
@@ -97,9 +127,12 @@ export function LinkRepositoriesModal({
             })}
           </div>
         ) : (
-          <p className="py-6 text-center text-[13px] text-[#8E968E]">
-            All imported repositories are already linked to this project.
-          </p>
+          <div className="rounded-[8px] border border-[#222823] bg-[#090B0A] p-6 text-center space-y-1">
+            <p className="text-[13px] font-medium text-[#F5F3EF]">All repositories linked</p>
+            <p className="font-mono text-[11px] text-[#8E968E]">
+              All {repositories.length} imported {repositories.length === 1 ? "repository is" : "repositories are"} already linked to this project.
+            </p>
+          </div>
         )}
 
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#222823]">
@@ -117,10 +150,11 @@ export function LinkRepositoriesModal({
             className="flex items-center gap-1.5 h-[32px] rounded bg-[#99B9A3] px-3.5 font-mono text-[12px] font-semibold text-[#090B0A] hover:bg-[#B4CEBC] disabled:opacity-40"
           >
             <LinkIcon className="h-[13px] w-[13px] stroke-[2px]" />
-            {linkMutation.isPending ? "Linking..." : "Link Repositories"}
+            {linkMutation.isPending ? "Linking..." : `Link (${selectedIds.length})`}
           </button>
         </div>
       </div>
     </div>
   );
 }
+
