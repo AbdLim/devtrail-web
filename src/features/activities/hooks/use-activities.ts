@@ -6,5 +6,8 @@ export function useActivities(query: ActivityTimelineQuery = {}) {
   return useQuery({
     queryKey: ["activities", "timeline", query],
     queryFn: () => getActivities(query),
+    retry: false,
+    staleTime: 30_000,
   });
 }
+
