@@ -31,4 +31,12 @@ export const endpoints = {
   activities: {
     timeline: "/activities/timeline",
   },
+  journal: {
+    create: "/journal",
+    list: "/journal",
+    detail: (id: string) => `/journal/${id}`,
+    update: (id: string) => `/journal/${id}`,
+    delete: (id: string) => `/journal/${id}`,
+  },
 } as const;
+

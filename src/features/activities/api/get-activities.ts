@@ -11,6 +11,14 @@ export async function getActivities(query: ActivityTimelineQuery = {}): Promise<
   const queryString = params.toString();
   const url = queryString ? `${endpoints.activities.timeline}?${queryString}` : endpoints.activities.timeline;
 
-  return apiClient<Activity[]>(url);
+  const res = await apiClient<Activity[] | { data?: Activity[]; activities?: Activity[]; timeline?: Activity[] }>(url);
+  if (Array.isArray(res)) return res;
+  if (res && typeof res === "object") {
+    if (Array.isArray((res as any).activities)) return (res as any).activities;
+    if (Array.isArray((res as any).timeline)) return (res as any).timeline;
+    if (Array.isArray((res as any).data)) return (res as any).data;
+  }
+  return [];
 }
+
 
