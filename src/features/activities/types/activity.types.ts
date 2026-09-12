@@ -1,5 +1,15 @@
-export type ActivitySource = "github" | "manual" | "ai";
-export type ActivityEventType = "commit" | "pull_request" | "issue" | "note" | "summary" | string;
+export type ActivitySource = "github" | "journal" | "manual" | "ai";
+export type ActivityEventType =
+  | "commit"
+  | "pull_request"
+  | "issue"
+  | "note"
+  | "accomplishment"
+  | "learning"
+  | "blocker"
+  | "decision"
+  | "summary"
+  | string;
 
 export interface ActivityMetadata {
   author?: {
@@ -10,6 +20,8 @@ export interface ActivityMetadata {
   repositoryName?: string;
   branch?: string;
   labels?: string[];
+  tags?: string[];
+  entryType?: string;
   [key: string]: unknown;
 }
 
@@ -34,3 +46,4 @@ export interface ActivityTimelineQuery {
   limit?: number;
   offset?: number;
 }
+

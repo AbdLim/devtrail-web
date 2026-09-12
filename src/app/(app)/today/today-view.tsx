@@ -11,24 +11,27 @@ import { Plus, Activity as ActivityIcon } from "lucide-react";
 
 /* ─── Symbols per source type ─────────────────────────── */
 const SYMBOLS: Record<string, { char: string; color: string }> = {
-  github: { char: "●", color: "text-[#99B9A3]" },
-  manual: { char: "◇", color: "text-[#C3AA78]" },
-  ai:     { char: "✦", color: "text-[#9C92BA]" },
+  github:  { char: "●", color: "text-[#99B9A3]" },
+  journal: { char: "◆", color: "text-[#C3AA78]" },
+  manual:  { char: "◇", color: "text-[#C3AA78]" },
+  ai:      { char: "✦", color: "text-[#9C92BA]" },
 };
 
 /* ─── Activity River Item ─────────────────────────────── */
 function ActivityRow({
   activity,
+  projectName,
   isSelected,
   onSelect,
   isLast,
 }: {
   activity: Activity;
+  projectName?: string;
   isSelected: boolean;
   onSelect: () => void;
   isLast: boolean;
 }) {
-  const symbol = SYMBOLS[activity.source] || SYMBOLS.manual;
+  const symbol = SYMBOLS[activity.source] || SYMBOLS.journal;
 
   // Format occurredAt time (HH:mm)
   const occurredDate = new Date(activity.occurredAt);
@@ -42,6 +45,7 @@ function ActivityRow({
 
   const eventLabel = (activity.eventType || activity.source).toUpperCase();
   const repoName = activity.metadata?.repositoryName || "";
+  const tags = (activity.metadata?.tags as string[]) || [];
 
   return (
     <div className="flex gap-0">
@@ -75,17 +79,23 @@ function ActivityRow({
           )}
         >
           {/* Type label — crisp mono uppercase colored by source */}
-          <div className="mb-1.5">
+          <div className="mb-1.5 flex items-center gap-2">
             <span
               className={cn(
                 "font-mono text-[11px] font-semibold uppercase tracking-[0.10em]",
                 activity.source === "github" && "text-[#8AA792]",
-                activity.source === "manual" && "text-[#A6926A]",
+                (activity.source === "journal" || activity.source === "manual") && "text-[#C3AA78]",
                 activity.source === "ai" && "text-[#958BB3]"
               )}
             >
               {eventLabel}
             </span>
+
+            {projectName && (
+              <span className="font-mono text-[10px] px-1.5 py-0.2 rounded border border-[#222823] bg-[#121613] text-[#99B9A3]">
+                {projectName}
+              </span>
+            )}
           </div>
 
           {/* Activity title */}
@@ -98,14 +108,23 @@ function ActivityRow({
             {activity.title}
           </p>
 
-          {/* Project / Repo metadata */}
-          {(repoName || activity.externalId) && (
-            <p className="mt-1 font-mono text-[11px] text-[#8E968E] uppercase tracking-[0.02em]">
-              {repoName && <span className="text-[#C4CCC4] font-medium">{repoName}</span>}
-              {activity.externalId && (
-                <span className="text-[#8E968E]"> · {activity.externalId.slice(0, 8)}</span>
-              )}
+          {/* Activity description preview for notes */}
+          {activity.source === "journal" && activity.description && activity.description !== activity.title && (
+            <p className="mt-1 text-[13px] text-[#8E968E] line-clamp-2 leading-[1.5]">
+              {activity.description}
             </p>
+          )}
+
+          {/* Project / Repo metadata */}
+          {(repoName || tags.length > 0 || activity.externalId) && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-2 font-mono text-[11px] text-[#8E968E] uppercase tracking-[0.02em]">
+              {repoName && <span className="text-[#C4CCC4] font-medium">{repoName}</span>}
+              {tags.map((t) => (
+                <span key={t} className="text-[#8E968E] bg-[#171C18] px-1 py-0.2 rounded text-[10px]">
+                  #{t}
+                </span>
+              ))}
+            </div>
           )}
         </button>
       </div>
@@ -139,14 +158,16 @@ export function TodayView({ userName }: { userName: string }) {
       closeInspector();
       return;
     }
+    const matchedProject = projects.find((p) => p.id === activity.projectId);
     const data: InspectorData = {
       title: activity.title,
-      subtitle: `${activity.eventType.toUpperCase()} · ${activity.source}`,
+      subtitle: `${activity.eventType.toUpperCase()} · ${activity.source.toUpperCase()}`,
       type: activity.source === "github" ? "evidence" : "note",
       data: {
         description: activity.description,
-        project: activity.projectId,
+        project: matchedProject?.name || activity.projectId,
         repo: activity.metadata?.repositoryName,
+        tags: activity.metadata?.tags as string[] | undefined,
         timestamp: `${monthAbbr} ${dayNum} · ${new Date(activity.occurredAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}`,
         url: activity.url,
         label: activity.eventType.toUpperCase(),
@@ -154,6 +175,7 @@ export function TodayView({ userName }: { userName: string }) {
     };
     openInspector(data);
   }
+
 
   return (
     <div className="space-y-0 select-none animate-page-enter">
@@ -225,16 +247,21 @@ export function TodayView({ userName }: { userName: string }) {
         </div>
       ) : activities.length > 0 ? (
         <div className="space-y-0 stagger-children">
-          {activities.map((item, i) => (
-            <div key={item.id} className="animate-stagger" style={{ animationDelay: `${i * 30}ms` }}>
-              <ActivityRow
-                activity={item}
-                isSelected={inspector.isOpen && inspector.data?.title === item.title}
-                onSelect={() => handleSelectActivity(item)}
-                isLast={i === activities.length - 1}
-              />
-            </div>
-          ))}
+          {activities.map((item, i) => {
+            const matchedProj = projects.find((p) => p.id === item.projectId);
+            return (
+              <div key={item.id} className="animate-stagger" style={{ animationDelay: `${i * 30}ms` }}>
+                <ActivityRow
+                  activity={item}
+                  projectName={matchedProj?.name}
+                  isSelected={inspector.isOpen && inspector.data?.title === item.title}
+                  onSelect={() => handleSelectActivity(item)}
+                  isLast={i === activities.length - 1}
+                />
+              </div>
+            );
+          })}
+
         </div>
       ) : (
         /* Railway Technical Empty State — spec §58 */
