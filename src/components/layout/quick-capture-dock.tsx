@@ -11,15 +11,15 @@ import type { JournalEntryType } from "@/features/journal/types/journal.types";
 const CAPTURE_TYPES: Array<{
   type: JournalEntryType;
   label: string;
-  icon: string;
   placeholder: string;
 }> = [
-  { type: "note", label: "Note", icon: "📝", placeholder: "What are you working on right now?" },
-  { type: "accomplishment", label: "Win", icon: "🏆", placeholder: "What milestone did you achieve today?" },
-  { type: "learning", label: "Learning", icon: "💡", placeholder: "What pattern or concept did you master?" },
-  { type: "blocker", label: "Blocker", icon: "🚧", placeholder: "What impediment or bottleneck are you facing?" },
-  { type: "decision", label: "Decision", icon: "⚖️", placeholder: "What architectural decision was made and why?" },
+  { type: "note", label: "Note", placeholder: "What are you working on right now?" },
+  { type: "accomplishment", label: "Win", placeholder: "What milestone did you achieve today?" },
+  { type: "learning", label: "Learning", placeholder: "What pattern or concept did you master?" },
+  { type: "blocker", label: "Blocker", placeholder: "What impediment or bottleneck are you facing?" },
+  { type: "decision", label: "Decision", placeholder: "What architectural decision was made and why?" },
 ];
+
 
 export function QuickCaptureDock() {
   const { isCaptureOpen, openCapture, closeCapture } = useWorkbenchStore();
@@ -269,17 +269,17 @@ export function QuickCaptureDock() {
                         type="button"
                         onClick={() => setCaptureType(t.type)}
                         className={cn(
-                          "flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.06em] px-2 py-1 rounded-[4px] transition-colors shrink-0",
+                          "font-mono text-[10px] uppercase tracking-[0.06em] px-2 py-1 rounded-[4px] transition-colors shrink-0",
                           captureType === t.type
                             ? "text-[#C3AA78] bg-[rgba(195,170,120,0.15)] font-semibold border border-[#C3AA78]/30"
                             : "text-[#8E968E] hover:text-[#F5F3EF] hover:bg-[#171C18]"
                         )}
                       >
-                        <span>{t.icon}</span>
                         <span>{t.label}</span>
                       </button>
                     ))}
                   </div>
+
                 </div>
 
                 {error && (
